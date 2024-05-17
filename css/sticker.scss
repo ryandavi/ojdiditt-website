@@ -1,0 +1,164 @@
+.sticker-book {
+
+	// sticker var
+	--stickerMaxSize: 85px;
+	--stickerMaxMobileSize: 55px;
+	--stickerImageScale: 1.05;
+	--stickerPickUpSize: 5px;
+
+	// wiggle var
+	--wiggleAmount: 1deg;
+	--wiggleDuration: .6s;
+
+	z-index: 1000000000000;
+
+	&.full-size {
+		background-color: transparent;
+
+		// so you can click behind this div
+		pointer-events: none;
+
+		overflow: hidden;
+		position: absolute;
+		top: 0;
+		left: 0;
+
+		width: 100vw;
+		height: 100vh;
+
+		// height of device with fallback
+		height: 100dvh;
+		width: 100dvw;
+
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+	}
+
+	.sticker-wrapper {
+		display: inline-block;
+		position: absolute;
+		opacity: 0;
+		transition: opacity 0.3s linear;
+		max-width: var(--stickerMaxSize);
+		pointer-events: auto;
+
+		will-change: top, left;
+
+		&.temp-shake {
+			animation: wiggle var(--wiggleDuration) ease 2;
+		}
+
+		>.sticker {
+			max-width: inherit;
+			max-height: inherit;
+
+			img {
+				// width: 100%;
+				// height: 100%;
+				object-fit: cover;
+				user-drag: none;
+				max-width: inherit;
+				max-height: inherit;
+				transition: transform .2s;
+				display: block;
+
+				// make it larger before showing it so it animates smaller
+				transform: scale(calc(var(--stickerImageScale) + .25));
+			}
+
+		}
+
+
+
+
+		&.draggable {
+			opacity: 0;
+			cursor: move;
+			user-select: none;
+			transition: opacity 0.3s linear;
+
+			&.visible {
+				opacity: 1;
+
+				>.sticker {
+
+					img {
+						// scale it to actual size
+						transform: scale(var(--stickerImageScale));
+					}
+				}
+			}
+
+			>.sticker {
+				a {
+					pointer-events: none;
+					max-width: inherit;
+					max-height: inherit;
+					width: 100%;
+					height: 100%;
+					display: block;
+				}
+			}
+		}
+
+
+		&.addDepth {
+			will-change: filter;
+			filter: drop-shadow(2px 2px 2px #00000020);
+
+			&.draggable {
+				transition: opacity 0.3s linear, filter .2s ease-out;
+
+				>.sticker {
+					img {
+						position: relative;
+						top: 0;
+						left: 0;
+						transition: transform .2s, top .2s ease-out, left .2s ease-out;
+					}
+				}
+
+				&.dragging {
+					filter: drop-shadow(calc(var(--stickerPickUpSize) * 2) calc(var(--stickerPickUpSize) * 2) 4px #00000020);
+
+					img {
+						transform: scale(calc(var(--stickerImageScale) + .1));
+						top: calc(var(--stickerPickUpSize) * -1);
+						left: calc(var(--stickerPickUpSize) * -1);
+					}
+				}
+			}
+		}
+
+	}
+}
+
+
+@media (max-width: 1024px) {
+
+	.sticker-book {
+		.sticker-wrapper {
+			max-width: var(--stickerMaxMobileSize);
+			max-height: var(--stickerMaxMobileSize);
+		}
+	}
+}
+
+@keyframes wiggle {
+
+	0%,
+	100% {
+		transform: rotate(0deg);
+	}
+
+	25%,
+	75% {
+		transform: rotate(var(--wiggleAmount));
+	}
+
+	50% {
+		transform: rotate(calc(-1 * var(--wiggleAmount)));
+	}
+}

@@ -1,0 +1,111 @@
+.sticker-book {
+  --stickerMaxSize: 85px;
+  --stickerMaxMobileSize: 55px;
+  --stickerImageScale: 1.05;
+  --stickerPickUpSize: 5px;
+  --wiggleAmount: 1deg;
+  --wiggleDuration: .6s;
+  z-index: 1000000000000;
+}
+.sticker-book.full-size {
+  background-color: transparent;
+  pointer-events: none;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  width: 100dvw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sticker-book .sticker-wrapper {
+  display: inline-block;
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.3s linear;
+  max-width: var(--stickerMaxSize);
+  pointer-events: auto;
+  will-change: top, left;
+}
+.sticker-book .sticker-wrapper.temp-shake {
+  animation: wiggle var(--wiggleDuration) ease 2;
+}
+.sticker-book .sticker-wrapper > .sticker {
+  max-width: inherit;
+  max-height: inherit;
+}
+.sticker-book .sticker-wrapper > .sticker img {
+  -o-object-fit: cover;
+     object-fit: cover;
+  user-drag: none;
+  max-width: inherit;
+  max-height: inherit;
+  transition: transform 0.2s;
+  display: block;
+  transform: scale(calc(var(--stickerImageScale) + 0.25));
+}
+.sticker-book .sticker-wrapper.draggable {
+  opacity: 0;
+  cursor: move;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+  transition: opacity 0.3s linear;
+}
+.sticker-book .sticker-wrapper.draggable.visible {
+  opacity: 1;
+}
+.sticker-book .sticker-wrapper.draggable.visible > .sticker img {
+  transform: scale(var(--stickerImageScale));
+}
+.sticker-book .sticker-wrapper.draggable > .sticker a {
+  pointer-events: none;
+  max-width: inherit;
+  max-height: inherit;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.sticker-book .sticker-wrapper.addDepth {
+  will-change: filter;
+  filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.1254901961));
+}
+.sticker-book .sticker-wrapper.addDepth.draggable {
+  transition: opacity 0.3s linear, filter 0.2s ease-out;
+}
+.sticker-book .sticker-wrapper.addDepth.draggable > .sticker img {
+  position: relative;
+  top: 0;
+  left: 0;
+  transition: transform 0.2s, top 0.2s ease-out, left 0.2s ease-out;
+}
+.sticker-book .sticker-wrapper.addDepth.draggable.dragging {
+  filter: drop-shadow(calc(var(--stickerPickUpSize) * 2) calc(var(--stickerPickUpSize) * 2) 4px rgba(0, 0, 0, 0.1254901961));
+}
+.sticker-book .sticker-wrapper.addDepth.draggable.dragging img {
+  transform: scale(calc(var(--stickerImageScale) + 0.1));
+  top: calc(var(--stickerPickUpSize) * -1);
+  left: calc(var(--stickerPickUpSize) * -1);
+}
+
+@media (max-width: 1024px) {
+  .sticker-book .sticker-wrapper {
+    max-width: var(--stickerMaxMobileSize);
+    max-height: var(--stickerMaxMobileSize);
+  }
+}
+@keyframes wiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25%, 75% {
+    transform: rotate(var(--wiggleAmount));
+  }
+  50% {
+    transform: rotate(calc(-1 * var(--wiggleAmount)));
+  }
+}/*# sourceMappingURL=sticker.css.map */

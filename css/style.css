@@ -1,0 +1,53 @@
+body,
+html {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  overflow-x: hidden;
+  min-width: 320px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 16px;
+  letter-spacing: -0.3px;
+}
+
+*,
+*::after,
+*::before {
+  box-sizing: border-box;
+}
+
+.portrait-wrapper {
+  padding: 20px;
+  position: relative;
+}
+.portrait-wrapper > img {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  max-height: 70vh;
+  border-radius: 4px;
+  transition: transform 0.5s;
+  display: block;
+  transform: rotate(0deg);
+  filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.1254901961));
+}
+.portrait-wrapper > .collision {
+  position: absolute;
+  z-index: 1;
+  width: 50%;
+  height: 50%;
+  position: absolute;
+  background-color: red;
+  opacity: 0.5;
+  top: 50%;
+  right: 50%;
+  transform: translate(50%, -50%);
+}/*# sourceMappingURL=style.css.map */
