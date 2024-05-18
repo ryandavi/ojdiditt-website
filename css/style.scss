@@ -33,16 +33,25 @@ body {
 .portrait-wrapper {
 	padding: 20px;
 	position: relative;
+
+
 	> img {
 		height: 100%;
 		width: 100%;
 		overflow: hidden;
 		max-height:70vh;
 		border-radius: 4px;
-		transition: transform .5s;
+		transition: transform 1.5s;
 		display:block;
 		transform: rotate(0deg);
 		filter: drop-shadow(1px 1px 1px #00000060);
+
+		// fade in
+		opacity: 0;
+		animation: fadeInAnimation ease 1.5s;
+		animation-iteration-count: 1;
+		animation-fill-mode: forwards;
+
 	}
 
 	> .collision {
@@ -60,4 +69,13 @@ body {
 		}
 
 	}
+}
+
+@keyframes fadeInAnimation {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
 }
