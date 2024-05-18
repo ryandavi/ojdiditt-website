@@ -101,10 +101,13 @@ var StickerApp = {
 			});
 
 			// Setup refresh button click event listener
-			document.getElementById('refreshButton').addEventListener('click', () => {
-				this.onRefreshButtonClick();
+			var button = document.getElementById('refreshButton');
+			setTimeout(function() {
+				button.classList.add('visible');
+			}, 2500);
+			button.addEventListener('click', () => {
+				this.onRefreshButtonClick(button);
 			});
-
 
 			// do everything else
 			this.stickers_array = container.querySelectorAll(this.sticker_itemSelector);
@@ -114,8 +117,8 @@ var StickerApp = {
 		}
 	},
 
-	onRefreshButtonClick: function () {
-		var button = document.getElementById('refreshButton');
+	onRefreshButtonClick: function (button) {
+
 		if (!button.classList.contains('spin')) { // Check if the button is not spinning
 			button.blur();
 	
@@ -131,7 +134,9 @@ var StickerApp = {
 	onResize() {
 		console.log("Resize event executed");
 
-		this.refreshStickerPlacement();
+		document.getElementById('refreshButton').click();
+
+		//this.refreshStickerPlacement();
 	},
 
 	refreshStickerPlacement: function () {

@@ -221,35 +221,42 @@
 	justify-content: center;
 	cursor: pointer;
 
-
-	transition: background-color 1s, transform 0.25s;
+	transition: opacity .5s, background-color 1s, transform 0.25s;
 
 	-webkit-tap-highlight-color: transparent;
 	background-color: #007bff30;
 
-	&:hover {
-		transform: scale(var(--hoverScale));
-	}
-
-	&:hover,
-	&:active,
-	&.spin {
-		background-color: #007bff;
-	}
-
-	&:active,
-	&.spin {
-		transform: scale(var(--activeScale));
-	}
-
-	&.spin {
-		animation: spin var(--refreshDuration) linear;
-	}
+	opacity: 0;
 
 	>.refresh-icon {
 		width: 80%;
 		height: 80%;
 		fill: white;
+	}
+
+	&.visible {
+		opacity: 1;
+	
+		&:hover {
+			transform: scale(var(--hoverScale));
+		}
+
+		&:hover,
+		&:active,
+		&.spin {
+			background-color: #007bff;
+		}
+
+		&:active,
+		&.spin {
+			transform: scale(var(--activeScale));
+		}
+
+		&.spin {
+			animation: spin var(--refreshDuration) linear;
+		}
+
+
 	}
 
 }

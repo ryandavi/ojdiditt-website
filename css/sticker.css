@@ -155,26 +155,30 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 1s, transform 0.25s;
+  transition: opacity 0.5s, background-color 1s, transform 0.25s;
   -webkit-tap-highlight-color: transparent;
   background-color: rgba(0, 123, 255, 0.1882352941);
-}
-#refreshButton:hover {
-  transform: scale(var(--hoverScale));
-}
-#refreshButton:hover, #refreshButton:active, #refreshButton.spin {
-  background-color: #007bff;
-}
-#refreshButton:active, #refreshButton.spin {
-  transform: scale(var(--activeScale));
-}
-#refreshButton.spin {
-  animation: spin var(--refreshDuration) linear;
+  opacity: 0;
 }
 #refreshButton > .refresh-icon {
   width: 80%;
   height: 80%;
   fill: white;
+}
+#refreshButton.visible {
+  opacity: 1;
+}
+#refreshButton.visible:hover {
+  transform: scale(var(--hoverScale));
+}
+#refreshButton.visible:hover, #refreshButton.visible:active, #refreshButton.visible.spin {
+  background-color: #007bff;
+}
+#refreshButton.visible:active, #refreshButton.visible.spin {
+  transform: scale(var(--activeScale));
+}
+#refreshButton.visible.spin {
+  animation: spin var(--refreshDuration) linear;
 }
 
 @media (max-width: 1024px) {
