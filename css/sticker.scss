@@ -79,12 +79,14 @@
 					linear-gradient(135deg, #0000 45%, rgba(255, 255, 255, 0.6) 55%, #0000 60%) transparent;
 					background-size: 300% 100%;
 					animation: shine 2.5s 1;
+					opacity: 0;
 
 					user-select: none;
 				}
 			}
 		}
 
+		// basic sticker
 		>.sticker {
 			max-width: inherit;
 			max-height: inherit;
@@ -103,12 +105,9 @@
 				// make it larger before showing it so it animates smaller
 				transform: scale(calc(var(--stickerImageScale) + .25));
 			}
-
 		}
 
-
-
-
+		// draggable sticker
 		&.draggable {
 			opacity: 0;
 			cursor: move;
@@ -117,9 +116,7 @@
 
 			&.visible {
 				opacity: 1;
-
 				>.sticker {
-
 					> .shine,
 					> img {
 						// scale it to actual size
@@ -147,21 +144,19 @@
 
 			&.draggable {
 				transition: opacity 0.3s linear, filter .2s ease-out;
-
 				>.sticker {
-					
 					> img {
 						position: relative;
 						top: 0;
 						left: 0;
 					}
-
 					> .shine, 
 					> img {
 						transition: transform .2s, top .2s ease-out, left .2s ease-out;
 					}
 				}
 
+				// it can only be dragging when it's draggable
 				&.dragging {
 					animation: wiggle var(--wiggleDuration) ease infinite;
 					filter: drop-shadow(calc(var(--stickerPickUpSize) * 2) calc(var(--stickerPickUpSize) * 2) 4px #00000020);
@@ -181,7 +176,7 @@
 	}
 }
 
-
+// mobile
 @media (max-width: 1024px) {
 	.sticker-book {
 		.sticker-wrapper {
@@ -219,17 +214,19 @@
 	}
 }
 
-
 @keyframes shine {
 	0% {
 	  background-position: right;
 	  opacity: 0;
 	}
-	10% {
+	5% {
 		opacity: 1;
 	}
-	90% {
+	95% {
 		opacity: 0;
+	}
+	100% {
+		background-position: left;
 	}
   
   }

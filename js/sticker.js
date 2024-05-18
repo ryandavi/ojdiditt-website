@@ -37,7 +37,7 @@ var StickerApp = {
 	// reveal
 	doReveal: true,
 	revealClassName: "visible",
-	initialRevealDelayDuration: 300,
+	initialRevealDelayDuration: 500,
 	revealDelayDuration: 150,
 	isAccelerated: true,
 	accelerationFactor: .9,
@@ -96,6 +96,33 @@ var StickerApp = {
 
 	onResize() {
 		console.log("Resize event executed");
+	
+		this.refreshStickerPlacement();
+	},
+
+	refreshStickerPlacement: function(){
+		if (this.doRandomPlacement) {
+	
+			// remove placed so we can set new locations
+			for (let i = 0; i < this.stickers_array.length; i++) {
+				this.stickers_array[i].classList.remove('placed');
+	
+				// remove reveal
+				if (this.doReveal) {
+					this.stickers_array[i].classList.remove(this.revealClassName);
+				}
+			}
+	
+			// rereveal
+			if (this.doReveal) {
+				setTimeout(() => {
+					this.setStickerLocations();
+					this.stickers_array.forEach(item => {
+						item.classList.add(this.revealClassName);
+					});
+				}, 350);
+			}
+		}
 	},
 
 	determineOrientation: function () {
@@ -372,15 +399,14 @@ var StickerApp = {
 	},
 
 	setIntervalShake: function () {
-		setInterval(function () {
-			StickerApp.shakeRandomSticker();
+		setInterval(() => {
+			this.shakeRandomSticker();
 		}, this.sticker_shakeInterval);
 	},
-
-	// SHINE
+	
 	setIntervalShine: function () {
-		setInterval(function () {
-			StickerApp.shineRandomSticker();
+		setInterval(() => {
+			this.shineRandomSticker();
 		}, this.shineInterval);
 	},
 
@@ -400,13 +426,11 @@ var StickerApp = {
 	},
 
 	setStickerLocations: function () {
-		var self = this; // Store a reference to 'this'
-		this.stickers_array.forEach(function (item) {
-
-			if (self.doRotate) self.setRandomRotation(item.querySelector(self.sticker_item_innerSelector));
-			item.style.zIndex = self.highestZIndex; // Use 'self' instead of 'this'
-			self.highestZIndex++;
-			StickerApp.setStickerPlacement(item, 0);
+		this.stickers_array.forEach((item) => {
+			if (this.doRotate) this.setRandomRotation(item.querySelector(this.sticker_item_innerSelector));
+			item.style.zIndex = this.highestZIndex; // Use 'this' instead of 'self'
+			this.highestZIndex++;
+			this.setStickerPlacement(item, 0);
 		});
 	},
 
@@ -572,8 +596,8 @@ var StickerApp = {
 					} else {
 						// Set percentage
 						if (self.convertToPercent == true) {
-							item.style.left = StickerApp.convertPixelToPercent(item.style.left, window.innerWidth);
-							item.style.top = StickerApp.convertPixelToPercent(item.style.top, window.innerHeight);
+							item.style.left = self.convertPixelToPercent(item.style.left, window.innerWidth);
+							item.style.top = self.convertPixelToPercent(item.style.top, window.innerHeight);
 						}
 					}
 				}
