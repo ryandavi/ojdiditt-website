@@ -3,7 +3,6 @@ var StickerApp = {
 	stickers_array: [],
 
 	sticker_containerID: "sticker-book",
-
 	sticker_itemName: ".sticker-wrapper",
 	sticker_item_innerName: ".sticker",
 
@@ -30,7 +29,7 @@ var StickerApp = {
 	revealClassName: "visible",
 	initialRevealDelayDuration: 300,
 	revealDelayDuration: 150,
-	loadTimeoutDuration: 1000,
+	loadTimeoutDuration: 1500,
 	isAccelerated: true,
 	accelerationFactor: .9,
 
@@ -43,8 +42,6 @@ var StickerApp = {
 
 	// placement
 	doRandomPlacement: true,
-
-
 	convertToPercent: true,
 
 	// decide if it's a click
@@ -235,17 +232,18 @@ var StickerApp = {
                 y = Math.random() * (pageHeight - sticker.offsetHeight);
             }
             
-            // Check boundaries
+            // Check and limit boundaries (even though it shouldn't go outside them)
             x = Math.max(0, Math.min(x, pageWidth - sticker.offsetWidth));
             y = Math.max(0, Math.min(y, pageHeight - sticker.offsetHeight));
             
-            // Check for overlap
-            //sticker.style.left = x + 'px';
-            //sticker.style.top = y + 'px';
-
-			sticker.style.top = this.convertPixelToPercent(y, window.innerHeight);
-			sticker.style.left = this.convertPixelToPercent(x, window.innerWidth);
-
+			// Place
+			if(this.convertToPercent){
+				sticker.style.top = this.convertPixelToPercent(y, window.innerHeight);
+				sticker.style.left = this.convertPixelToPercent(x, window.innerWidth);
+			}else{
+            	sticker.style.left = x + 'px';
+            	sticker.style.top = y + 'px';
+			}
 
             const stickerRect = sticker.getBoundingClientRect();
             
@@ -255,21 +253,30 @@ var StickerApp = {
             let overlapTooMuch = false;
             
             // Check overlap with other stickers
-            placedStickers.forEach(otherSticker => {
-                const otherRect = otherSticker.getBoundingClientRect();
-                if (this.isOverlap(stickerRect, otherRect, this.sticker_overlapOffset)) {
-                    overlapTooMuch = true;
-                }
-            });
+			if(this.sticker_overlapOffset != 0){
+				for (let otherSticker of placedStickers) {
+					const otherRect = otherSticker.getBoundingClientRect();
+					if (this.isOverlap(stickerRect, otherRect, this.sticker_overlapOffset)) {
+						overlapTooMuch = true;
+						break;
+					}
+				}
+			}
             
-            // Check overlap with no-overlap elements
-            noOverlapElements.forEach(element => {
-                const elementRect = element.getBoundingClientRect();
-                if (this.isOverlap(stickerRect, elementRect, this.portrait_overlapOffset)) {
-                    overlapTooMuch = true;
-                }
-            });
+            // Check overlap with no-overlap elements if no overlap found with stickers
+			if(this.portrait_overlapOffset != 0){
+				if (!overlapTooMuch) {
+					for (let element of noOverlapElements) {
+						const elementRect = element.getBoundingClientRect();
+						if (this.isOverlap(stickerRect, elementRect, this.portrait_overlapOffset)) {
+							overlapTooMuch = true;
+							break;
+						}
+					}
+				}
+			}
             
+			// if we havent found any overlaps, we're done!
             if (!overlapTooMuch) {
                 validPositionFound = true;
                 // sticker.classList.add('no-overlap');

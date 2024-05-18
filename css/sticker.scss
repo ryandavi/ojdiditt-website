@@ -1,10 +1,18 @@
 .sticker-book {
 
 	// sticker var
-	--stickerMaxSize: 85px;
+	--stickerMaxSize: 90px;
 	--stickerMaxMobileSize: 55px;
 	--stickerImageScale: 1.05;
 	--stickerPickUpSize: 5px;
+
+	// large
+	--stickerLargeSize: 150px;
+	--stickerLargeMobileSize: 90px;
+
+	// small
+	--stickerSmallSize: 60px;
+	--stickerSmallMobileSize: 30px;
 
 	// wiggle var
 	--wiggleAmount: 1deg;
@@ -43,6 +51,15 @@
 		transition: opacity 0.3s linear;
 		max-width: var(--stickerMaxSize);
 		pointer-events: auto;
+
+		&.large {
+			max-width: var(--stickerLargeSize);
+		}
+
+
+		&.small {
+			max-width: var(--stickerSmallSize);
+		}
 
 		will-change: top, left;
 
@@ -142,6 +159,18 @@
 		.sticker-wrapper {
 			max-width: var(--stickerMaxMobileSize);
 			max-height: var(--stickerMaxMobileSize);
+
+			&.large {
+				max-width: var(--stickerLargeMobileSize);
+				max-height: var(--stickerLargeMobileSize);
+			}
+
+			&.small {
+				max-width: var(--stickerSmallMobileSize);
+				max-height: var(--stickerSmallMobileSize);
+			}
+
+
 		}
 	}
 }

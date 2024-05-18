@@ -1,8 +1,12 @@
 .sticker-book {
-  --stickerMaxSize: 85px;
+  --stickerMaxSize: 90px;
   --stickerMaxMobileSize: 55px;
   --stickerImageScale: 1.05;
   --stickerPickUpSize: 5px;
+  --stickerLargeSize: 150px;
+  --stickerLargeMobileSize: 90px;
+  --stickerSmallSize: 60px;
+  --stickerSmallMobileSize: 30px;
   --wiggleAmount: 1deg;
   --wiggleDuration: .6s;
   z-index: 1000000000000;
@@ -30,6 +34,12 @@
   max-width: var(--stickerMaxSize);
   pointer-events: auto;
   will-change: top, left;
+}
+.sticker-book .sticker-wrapper.large {
+  max-width: var(--stickerLargeSize);
+}
+.sticker-book .sticker-wrapper.small {
+  max-width: var(--stickerSmallSize);
 }
 .sticker-book .sticker-wrapper.temp-shake {
   animation: wiggle var(--wiggleDuration) ease 2;
@@ -96,6 +106,14 @@
   .sticker-book .sticker-wrapper {
     max-width: var(--stickerMaxMobileSize);
     max-height: var(--stickerMaxMobileSize);
+  }
+  .sticker-book .sticker-wrapper.large {
+    max-width: var(--stickerLargeMobileSize);
+    max-height: var(--stickerLargeMobileSize);
+  }
+  .sticker-book .sticker-wrapper.small {
+    max-width: var(--stickerSmallMobileSize);
+    max-height: var(--stickerSmallMobileSize);
   }
 }
 @keyframes wiggle {
