@@ -123,7 +123,7 @@
 
 		&.addDepth {
 			will-change: filter;
-			filter: drop-shadow(2px 2px 2px #00000020);
+			filter: drop-shadow(1px 1px 1px #00000080);
 
 			&.draggable {
 				transition: opacity 0.3s linear, filter .2s ease-out;

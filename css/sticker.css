@@ -82,7 +82,7 @@
 }
 .sticker-book .sticker-wrapper.addDepth {
   will-change: filter;
-  filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.1254901961));
+  filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.5019607843));
 }
 .sticker-book .sticker-wrapper.addDepth.draggable {
   transition: opacity 0.3s linear, filter 0.2s ease-out;

@@ -208,11 +208,11 @@ var StickerApp = {
 				let maxOffsetY = portraitElement.offsetHeight;
 
 				if(this.determineOrientation() == "vertical"){
-					// vertical
-					maxOffsetX *=  0.1;
-					maxOffsetY *=  0.2;
+					// vertical - phone
+					maxOffsetX *=  0.025;
+					maxOffsetY *=  0.075;
 				}else{
-					// horizontal
+					// horizontal - desktop
 					maxOffsetX *=  0.3;
 					maxOffsetY *=  0.1;
 				}
