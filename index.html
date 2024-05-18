@@ -204,14 +204,16 @@
 	const StickerSite = {
 
 		init: function() {
-			console.log(`Initializing ${this.name}...`);
-			
 			this.setPortraitRotation();
+		},
+
+		getRandomInRange: function(min, max) {
+			return Math.random() * (max - min) + min;
 		},
 
 		setPortraitRotation: function(){
 			const img = document.querySelector('#portrait img');
-			const randomAngle = (Math.random() * 4) - 2; // Generates a number between -2 and 2
+			const randomAngle = this.getRandomInRange(-2, 2);
 			img.style.transform = `rotate(${randomAngle}deg)`;
 		}
 	};

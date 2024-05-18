@@ -9,12 +9,12 @@ var StickerApp = {
 	// shine
 	doShine: true,
 	shineClass: "shine",
-	shineInterval: 4000,
+	shineInterval: 3000,
 
 	// shake
 	doShake: true,
 	sticker_shakeDuration: 1200,
-	sticker_shakeInterval: 4000,
+	sticker_shakeInterval: 3000,
 	shakeClass: 'temp-shake',
 
 	// layering
@@ -22,11 +22,11 @@ var StickerApp = {
 	sticker_overlapIterations: 50,
 
 	// overlap, in pixels
-	sticker_overlapOffset: 20, 
+	sticker_overlapOffset: 20,
 	portrait_overlapOffset: 50,
 
 	// surround Object
-	doSurroundObject: true, 
+	doSurroundObject: true,
 	surroundObjectID: "portrait",
 
 	// sparkle
@@ -39,9 +39,12 @@ var StickerApp = {
 	revealClassName: "visible",
 	initialRevealDelayDuration: 300,
 	revealDelayDuration: 150,
-	loadTimeoutDuration: 1500,
 	isAccelerated: true,
 	accelerationFactor: .9,
+
+	// loading timeout
+	loadTimeoutDuration: 2500,
+	loadTimeout: null,
 
 	//depth (scaling, shadows)
 	doDepth: true,
@@ -58,33 +61,49 @@ var StickerApp = {
 	movementThreshold: 5,
 	clickDurationThreshold: 125,
 
+	// resize
+	resizeDelayDuration: 500,
+
 	init: function () {
+		console.log("Init sticker app...");
+
 		let container = document.getElementById(this.sticker_containerID);
-		console.log("init sticker app");
-
-		// reduce overlap on small screens
-		if(this.determineScreenSize == "small"){
-			this.sticker_overlapOffset /= 2.5; 
-			this.portrait_overlapOffset /= 2.5; 
-		}
-
 		if (container) {
-			console.log("has container");
+			console.log("Valid container found...");
+
+			// reduce overlap on small screens
+			if (this.determineScreenSize() == "small") {
+				this.sticker_overlapOffset /= 3;
+				this.portrait_overlapOffset /= 3;
+			}
+
+			// resize event
+			let resizeTimeout;
+			window.addEventListener('resize', () => {
+				clearTimeout(resizeTimeout);
+				resizeTimeout = setTimeout(() => {
+					this.onResize();
+				}, this.resizeDelayDuration); // Adjust the timeout delay as needed
+			});
+
+			// do everything else
 			this.stickers_array = container.querySelectorAll(this.sticker_itemSelector);
 			this.imagesLoaded = false;
 			this.imagesLoadedTimeout = null;
 			this.loadImagesWithTimeout();
 		}
-
 	},
 
+	onResize() {
+		console.log("Resize event executed");
+	},
 
-	determineOrientation: function() {
+	determineOrientation: function () {
 		const width = window.innerWidth;
 		const height = window.innerHeight;
-	
+
 		const aspectRatio = width / height;
-	
+
 		if (aspectRatio > 1.2) {
 			return 'horizontal';
 		} else if (aspectRatio < 0.8) {
@@ -94,9 +113,9 @@ var StickerApp = {
 		}
 	},
 
-	determineScreenSize: function() {
+	determineScreenSize: function () {
 		const width = window.innerWidth;
-	
+
 		if (width >= 1024) {
 			return 'large'; // Large screen, typically desktop
 		} else {
@@ -105,42 +124,65 @@ var StickerApp = {
 	},
 
 
+	
+
 	loadImagesWithTimeout: function () {
 		const images = Array.from(this.stickers_array).map(sticker => sticker.querySelector('img'));
 		const imagesToLoad = images.filter(img => img !== null);
-
+	
 		if (imagesToLoad.length === 0) {
-			// no images to load
+			// No images to load
 			this.imagesLoaded = true;
 			this.executeInitFunctions();
 		} else {
-			// load images
-			const loadedImages = [];
+			let loadedImagesCount = 0;
+			this.loadTimeout = null; // Initialize this.loadTimeout to null
+	
+			const onImageLoadOrError = (isError) => {
+				// Increment loadedImagesCount regardless of whether it's an error or load event
+				loadedImagesCount++;
+
+				// If all images (including errors) are accounted for, mark images as loaded, clear timeout, and execute initialization functions
+				if (loadedImagesCount === imagesToLoad.length) {
+					console.log(`${loadedImagesCount} sticker images loaded`);
+					this.imagesLoaded = true;
+					clearTimeout(this.loadTimeout);
+					this.executeInitFunctions();
+				}
+
+				// If it's an error event, log an error message
+				if (isError) {
+					console.error("An error occurred while loading an image.");
+				}
+			};
+
 			imagesToLoad.forEach(img => {
-				img.addEventListener('load', () => {
-					loadedImages.push(img);
-
-					// If all images are loaded, mark images as loaded, clear timeout, and execute initialization functions
-					if (loadedImages.length === imagesToLoad.length) {
-						this.imagesLoaded = true;
-						clearTimeout(this.imagesLoadedTimeout);
-						this.executeInitFunctions();
-					}
-				});
+				if (img.complete) {
+					// Image already loaded
+					onImageLoadOrError(false); // Pass false for load event
+				} else {
+					// Image still loading
+					img.addEventListener('load', () => onImageLoadOrError(false));
+					img.addEventListener('error', () => onImageLoadOrError(true)); // Pass true for error event
+				}
 			});
-
-			// timeout
-			this.imagesLoadedTimeout = setTimeout(() => {
-				// If timeout is reached, mark images as loaded, execute initialization functions, and log a timeout message
-				this.imagesLoaded = true;
-				this.executeInitFunctions();
-				console.log("timeout");
-			}, this.loadTimeoutDuration); // Timeout after 5 seconds (adjust as needed)
+	
+			// Timeout
+			this.loadTimeout = setTimeout(() => {
+				if (loadedImagesCount === imagesToLoad.length) {
+					console.log("Image loading timeout not needed")
+				}else{
+					// If timeout is reached, mark images as loaded, execute initialization functions, and log a timeout message
+					console.log(`Timeout: ${imagesToLoad.length} - ${loadedImagesCount} images did not load within ${this.loadTimeoutDuration}ms.`);
+					this.imagesLoaded = true;
+					this.executeInitFunctions();
+				}
+			}, this.loadTimeoutDuration); 
 		}
 	},
 
 	executeInitFunctions: function () {
-		console.log("all loaded");
+		console.log("Execute init functions");
 
 		if (this.doRandomPlacement) {
 			this.setStickerLocations();
@@ -166,10 +208,6 @@ var StickerApp = {
 
 
 		if (this.sparkle_do) {
-			/***********************************************
-			* EXECUTE SPARKLE
-			/**********************************************/
-
 			setInterval(function () {
 				this.SetSparkle();
 			}, sparkle_Interval);
@@ -211,121 +249,118 @@ var StickerApp = {
 
 
 
-    setStickerPlacement: function (sticker) {
+	setStickerPlacement: function (sticker) {
+		const pageWidth = window.innerWidth;
+		const pageHeight = window.innerHeight;
 
-        
-        const pageWidth = window.innerWidth;
-        const pageHeight = window.innerHeight;
-        
-        let validPositionFound = false;
-        let attempts = 0;
-        
-        while (!validPositionFound && attempts < this.sticker_overlapIterations) {
-            attempts++;
-            
-            // Calculate random position
-            let x, y;
-            if (this.doSurroundObject) {
-				const portraitElement = document.getElementById(this.surroundObjectID);
-				let maxOffsetX = portraitElement.offsetWidth;
-				let maxOffsetY = portraitElement.offsetHeight;
+		let validPositionFound = false;
+		let attempts = 0;
 
-				if(this.determineOrientation() == "vertical"){
-					// vertical - phone
-					maxOffsetX *=  0.025;
-					maxOffsetY *=  0.075;
-				}else{
-					// horizontal - desktop
-					maxOffsetX *=  0.3;
-					maxOffsetY *=  0.1;
-				}
+		while (!validPositionFound && attempts < this.sticker_overlapIterations) {
+			attempts++;
+			validPositionFound = this.tryPlaceSticker(sticker, pageWidth, pageHeight);
+		}
 
-                x = this.getRandomInteger(
-                    portraitElement.offsetLeft - maxOffsetX,
-                    portraitElement.offsetLeft + portraitElement.offsetWidth + maxOffsetX - sticker.offsetWidth
-                );
-                y = this.getRandomInteger(
-                    portraitElement.offsetTop - maxOffsetY,
-                    portraitElement.offsetTop + portraitElement.offsetHeight + maxOffsetY - sticker.offsetHeight
-                );
+		if (!validPositionFound) {
+			console.warn('Max attempts reached, attempting to place sticker without overlap only against no-overlap elements');
 
-
-            } else {
-                x = Math.random() * (pageWidth - sticker.offsetWidth);
-                y = Math.random() * (pageHeight - sticker.offsetHeight);
-            }
-            
-            // Check and limit boundaries (even though it shouldn't go outside them)
-            x = Math.max(0, Math.min(x, pageWidth - sticker.offsetWidth));
-            y = Math.max(0, Math.min(y, pageHeight - sticker.offsetHeight));
-            
-			// Place
-			if(this.convertToPercent){
-				sticker.style.top = this.convertPixelToPercent(y, window.innerHeight);
-				sticker.style.left = this.convertPixelToPercent(x, window.innerWidth);
-			}else{
-            	sticker.style.left = x + 'px';
-            	sticker.style.top = y + 'px';
+			attempts = 0;
+			while (!validPositionFound && attempts < this.sticker_overlapIterations) {
+				attempts++;
+				validPositionFound = this.tryPlaceSticker(sticker, pageWidth, pageHeight, true);
 			}
 
-            const stickerRect = sticker.getBoundingClientRect();
-            
-            const placedStickers = document.querySelectorAll('.sticker-wrapper.placed');
-            const noOverlapElements = document.querySelectorAll('.no-overlap');
-            
-            let overlapTooMuch = false;
-            
-            // Check overlap with other stickers
-			if(this.sticker_overlapOffset != 0){
-				for (let otherSticker of placedStickers) {
-					const otherRect = otherSticker.getBoundingClientRect();
-					if (this.isOverlap(stickerRect, otherRect, this.sticker_overlapOffset)) {
-						overlapTooMuch = true;
-						break;
-					}
-				}
+			if (!validPositionFound) {
+				console.error('Unable to place sticker without overlapping no-overlap elements');
 			}
-            
-            // Check overlap with no-overlap elements if no overlap found with stickers
-			if(this.portrait_overlapOffset != 0){
-				if (!overlapTooMuch) {
-					for (let element of noOverlapElements) {
-						const elementRect = element.getBoundingClientRect();
-						if (this.isOverlap(stickerRect, elementRect, this.portrait_overlapOffset)) {
-							overlapTooMuch = true;
-							break;
-						}
-					}
-				}
-			}
-            
-			// if we havent found any overlaps, we're done!
-            if (!overlapTooMuch) {
-                validPositionFound = true;
-                // sticker.classList.add('no-overlap');
-                sticker.classList.add('placed');
-            }
-        }
-        
-        if (attempts === this.sticker_overlapIterations) {
-            console.warn('Max attempts reached, unable to place sticker without excessive overlap');
-		
-        }
-    },
-    
-    isOverlap: function(rect1, rect2, offset) {
-        return !(rect1.right < rect2.left + offset ||
-                 rect1.left > rect2.right - offset ||
-                 rect1.bottom < rect2.top + offset ||
-                 rect1.top > rect2.bottom - offset);
-    },
+		}
+	},
 
-	
+	tryPlaceSticker: function (sticker, pageWidth, pageHeight, checkNoOverlapOnly = false) {
+		const { x, y } = this.calculateRandomPosition(sticker, pageWidth, pageHeight);
+		const constrainedPosition = this.constrainPosition(x, y, sticker, pageWidth, pageHeight);
+		this.placeSticker(sticker, constrainedPosition.x, constrainedPosition.y);
+
+		const stickerRect = sticker.getBoundingClientRect();
+		const noOverlapElements = document.querySelectorAll('.no-overlap');
+		const elementsToCheck = checkNoOverlapOnly ? noOverlapElements : document.querySelectorAll('.sticker-wrapper.placed, .no-overlap');
+
+		if (!this.isOverlapDetected(stickerRect, elementsToCheck, checkNoOverlapOnly ? this.portrait_overlapOffset : this.sticker_overlapOffset)) {
+			sticker.classList.add('placed');
+			return true;
+		}
+		return false;
+	},
+
+	calculateRandomPosition: function (sticker, pageWidth, pageHeight) {
+		let x, y;
+		if (this.doSurroundObject) {
+			const portraitElement = document.getElementById(this.surroundObjectID);
+			let maxOffsetX = portraitElement.offsetWidth;
+			let maxOffsetY = portraitElement.offsetHeight;
+
+			if (this.determineOrientation() === "vertical") {
+				maxOffsetX *= 0.025;
+				maxOffsetY *= 0.075;
+			} else {
+				maxOffsetX *= 0.3;
+				maxOffsetY *= 0.1;
+			}
+
+			x = this.getRandomInteger(
+				portraitElement.offsetLeft - maxOffsetX,
+				portraitElement.offsetLeft + portraitElement.offsetWidth + maxOffsetX - sticker.offsetWidth
+			);
+			y = this.getRandomInteger(
+				portraitElement.offsetTop - maxOffsetY,
+				portraitElement.offsetTop + portraitElement.offsetHeight + maxOffsetY - sticker.offsetHeight
+			);
+		} else {
+			x = Math.random() * (pageWidth - sticker.offsetWidth);
+			y = Math.random() * (pageHeight - sticker.offsetHeight);
+		}
+		return { x, y };
+	},
+
+	constrainPosition: function (x, y, sticker, pageWidth, pageHeight) {
+		x = Math.max(0, Math.min(x, pageWidth - sticker.offsetWidth));
+		y = Math.max(0, Math.min(y, pageHeight - sticker.offsetHeight));
+		return { x, y };
+	},
+
+	placeSticker: function (sticker, x, y) {
+		if (this.convertToPercent) {
+			sticker.style.top = this.convertPixelToPercent(y, window.innerHeight);
+			sticker.style.left = this.convertPixelToPercent(x, window.innerWidth);
+		} else {
+			sticker.style.left = x + 'px';
+			sticker.style.top = y + 'px';
+		}
+	},
+
+	isOverlapDetected: function (stickerRect, elements, offset) {
+		for (let element of elements) {
+			const elementRect = element.getBoundingClientRect();
+			if (this.isOverlap(stickerRect, elementRect, offset)) {
+				return true;
+			}
+		}
+		return false;
+	},
+
+	isOverlap: function (rect1, rect2, offset) {
+		return !(rect1.right < rect2.left + offset ||
+			rect1.left > rect2.right - offset ||
+			rect1.bottom < rect2.top + offset ||
+			rect1.top > rect2.bottom - offset);
+	},
+
+
 	// SHAKE
 	shakeSticker: function (element) {
 		if (!element.classList.contains(this.shakeClass)) {
 			element.classList.add(this.shakeClass);
-			element.addEventListener('animationiteration', () => {
+			element.addEventListener('animationend', () => {
 				element.classList.remove(this.shakeClass);
 			});
 		}
@@ -349,7 +384,7 @@ var StickerApp = {
 		}, this.shineInterval);
 	},
 
-	shineRandomSticker: function(){
+	shineRandomSticker: function () {
 		var random = this.getRandomInteger(0, this.stickers_array.length - 1);
 		this.shineSticker(this.stickers_array[random]);
 	},
@@ -358,7 +393,7 @@ var StickerApp = {
 	shineSticker: function (element) {
 		if (!element.classList.contains(this.shineClass)) {
 			element.classList.add(this.shineClass);
-			element.addEventListener('animationiteration', () => {
+			element.addEventListener('animationend', () => {
 				element.classList.remove(this.shineClass);
 			});
 		}

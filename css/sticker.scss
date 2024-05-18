@@ -4,7 +4,7 @@
 	--stickerMaxSize: 90px;
 	--stickerMaxMobileSize: 55px;
 	--stickerImageScale: 1.05;
-	--stickerPickUpSize: 5px;
+	--stickerPickUpSize: 3px;
 
 	// large
 	--stickerLargeSize: 150px;
@@ -78,7 +78,7 @@
 					background:
 					linear-gradient(135deg, #0000 45%, rgba(255, 255, 255, 0.6) 55%, #0000 60%) transparent;
 					background-size: 300% 100%;
-					animation: shine 2.5s infinite;
+					animation: shine 2.5s 1;
 
 					user-select: none;
 				}
@@ -163,6 +163,7 @@
 				}
 
 				&.dragging {
+					animation: wiggle var(--wiggleDuration) ease infinite;
 					filter: drop-shadow(calc(var(--stickerPickUpSize) * 2) calc(var(--stickerPickUpSize) * 2) 4px #00000020);
 
 					>.sticker {

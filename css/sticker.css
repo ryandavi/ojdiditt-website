@@ -2,7 +2,7 @@
   --stickerMaxSize: 90px;
   --stickerMaxMobileSize: 55px;
   --stickerImageScale: 1.05;
-  --stickerPickUpSize: 5px;
+  --stickerPickUpSize: 3px;
   --stickerLargeSize: 150px;
   --stickerLargeMobileSize: 90px;
   --stickerSmallSize: 60px;
@@ -55,7 +55,7 @@
           mask-size: 100%;
   background: linear-gradient(135deg, rgba(0, 0, 0, 0) 45%, rgba(255, 255, 255, 0.6) 55%, rgba(0, 0, 0, 0) 60%) transparent;
   background-size: 300% 100%;
-  animation: shine 2.5s infinite;
+  animation: shine 2.5s 1;
   -webkit-user-select: none;
      -moz-user-select: none;
           user-select: none;
@@ -115,6 +115,7 @@
   transition: transform 0.2s, top 0.2s ease-out, left 0.2s ease-out;
 }
 .sticker-book .sticker-wrapper.addDepth.draggable.dragging {
+  animation: wiggle var(--wiggleDuration) ease infinite;
   filter: drop-shadow(calc(var(--stickerPickUpSize) * 2) calc(var(--stickerPickUpSize) * 2) 4px rgba(0, 0, 0, 0.1254901961));
 }
 .sticker-book .sticker-wrapper.addDepth.draggable.dragging > .sticker > .shine,
