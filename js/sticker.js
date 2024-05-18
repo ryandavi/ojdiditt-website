@@ -3,25 +3,35 @@ var StickerApp = {
 	stickers_array: [],
 
 	sticker_containerID: "sticker-book",
-	sticker_itemName: ".sticker-wrapper",
-	sticker_item_innerName: ".sticker",
+	sticker_itemSelector: ".sticker-wrapper",
+	sticker_item_innerSelector: ".sticker",
+
+	// shine
+	doShine: true,
+	shineClass: "shine",
+	shineInterval: 4000,
 
 	// shake
 	doShake: true,
 	sticker_shakeDuration: 1200,
 	sticker_shakeInterval: 4000,
+	shakeClass: 'temp-shake',
 
 	// layering
 	highestZIndex: 0,
 	sticker_overlapIterations: 50,
 
-	// in pixels
+	// overlap, in pixels
 	sticker_overlapOffset: 20, 
 	portrait_overlapOffset: 50,
 
+	// surround Object
+	doSurroundObject: true, 
+	surroundObjectID: "portrait",
+
 	// sparkle
 	sparkle_do: false,
-	sparkle_itemName: ".sparkle",
+	sparkle_itemSelector: ".sparkle",
 	sparkle_Interval: 2000,
 
 	// reveal
@@ -53,7 +63,7 @@ var StickerApp = {
 		console.log("init sticker");
 		if (container) {
 			console.log("has container");
-			this.stickers_array = container.querySelectorAll(this.sticker_itemName);
+			this.stickers_array = container.querySelectorAll(this.sticker_itemSelector);
 			this.imagesLoaded = false;
 			this.imagesLoadedTimeout = null;
 			this.loadImagesWithTimeout();
@@ -135,6 +145,12 @@ var StickerApp = {
 			this.setIntervalShake();
 		}
 
+		if (this.doShine) {
+			this.shineRandomSticker();
+			this.setIntervalShine();
+		}
+
+
 		if (this.doReveal) {
 			this.revealStickerOneByOne();
 		}
@@ -184,7 +200,6 @@ var StickerApp = {
 		return (parseInt(val) / (dimension / 100)) + "%";
 	},
 
-	stayNear: true, 
 
 
 
@@ -202,8 +217,8 @@ var StickerApp = {
             
             // Calculate random position
             let x, y;
-            if (this.stayNear) {
-				const portraitElement = document.getElementById("portrait");
+            if (this.doSurroundObject) {
+				const portraitElement = document.getElementById(this.surroundObjectID);
 				let maxOffsetX = portraitElement.offsetWidth;
 				let maxOffsetY = portraitElement.offsetHeight;
 
@@ -298,13 +313,14 @@ var StickerApp = {
     },
 
 	
-
+	// SHAKE
 	shakeSticker: function (element) {
-		element.classList.add("temp-shake");
-
-		setTimeout(function () {
-			element.classList.remove("temp-shake");
-		}, this.sticker_shakeDuration);
+		if (!element.classList.contains(this.shakeClass)) {
+			element.classList.add(this.shakeClass);
+			element.addEventListener('animationiteration', () => {
+				element.classList.remove(this.shakeClass);
+			});
+		}
 	},
 
 	shakeRandomSticker: function () {
@@ -312,13 +328,39 @@ var StickerApp = {
 		this.shakeSticker(this.stickers_array[random]);
 	},
 
+	setIntervalShake: function () {
+		setInterval(function () {
+			StickerApp.shakeRandomSticker();
+		}, this.sticker_shakeInterval);
+	},
+
+	// SHINE
+	setIntervalShine: function () {
+		setInterval(function () {
+			StickerApp.shineRandomSticker();
+		}, this.shineInterval);
+	},
+
+	shineRandomSticker: function(){
+		var random = this.getRandomInteger(0, this.stickers_array.length - 1);
+		this.shineSticker(this.stickers_array[random]);
+	},
+
+
+	shineSticker: function (element) {
+		if (!element.classList.contains(this.shineClass)) {
+			element.classList.add(this.shineClass);
+			element.addEventListener('animationiteration', () => {
+				element.classList.remove(this.shineClass);
+			});
+		}
+	},
+
 	setStickerLocations: function () {
 		var self = this; // Store a reference to 'this'
 		this.stickers_array.forEach(function (item) {
 
-
-
-			if (self.doRotate) self.setRandomRotation(item.querySelector(self.sticker_item_innerName));
+			if (self.doRotate) self.setRandomRotation(item.querySelector(self.sticker_item_innerSelector));
 			item.style.zIndex = self.highestZIndex; // Use 'self' instead of 'this'
 			self.highestZIndex++;
 			StickerApp.setStickerPlacement(item, 0);
@@ -525,12 +567,6 @@ var StickerApp = {
 		var percent = (pixel / containerWidth) * 100;
 		return percent + "%";
 	},
-
-	setIntervalShake: function () {
-		setInterval(function () {
-			StickerApp.shakeRandomSticker();
-		}, this.sticker_shakeInterval);
-	}
 };
 
 StickerApp.init();

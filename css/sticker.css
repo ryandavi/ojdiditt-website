@@ -44,11 +44,28 @@
 .sticker-book .sticker-wrapper.temp-shake {
   animation: wiggle var(--wiggleDuration) ease 2;
 }
+.sticker-book .sticker-wrapper.shine > .sticker > .shine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  -webkit-mask-size: 100%;
+          mask-size: 100%;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0) 45%, rgba(255, 255, 255, 0.6) 55%, rgba(0, 0, 0, 0) 60%) transparent;
+  background-size: 300% 100%;
+  animation: shine 2.5s infinite;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
 .sticker-book .sticker-wrapper > .sticker {
   max-width: inherit;
   max-height: inherit;
+  position: relative;
 }
-.sticker-book .sticker-wrapper > .sticker img {
+.sticker-book .sticker-wrapper > .sticker > img {
   -o-object-fit: cover;
      object-fit: cover;
   user-drag: none;
@@ -69,7 +86,8 @@
 .sticker-book .sticker-wrapper.draggable.visible {
   opacity: 1;
 }
-.sticker-book .sticker-wrapper.draggable.visible > .sticker img {
+.sticker-book .sticker-wrapper.draggable.visible > .sticker > .shine,
+.sticker-book .sticker-wrapper.draggable.visible > .sticker > img {
   transform: scale(var(--stickerImageScale));
 }
 .sticker-book .sticker-wrapper.draggable > .sticker a {
@@ -87,16 +105,20 @@
 .sticker-book .sticker-wrapper.addDepth.draggable {
   transition: opacity 0.3s linear, filter 0.2s ease-out;
 }
-.sticker-book .sticker-wrapper.addDepth.draggable > .sticker img {
+.sticker-book .sticker-wrapper.addDepth.draggable > .sticker > img {
   position: relative;
   top: 0;
   left: 0;
+}
+.sticker-book .sticker-wrapper.addDepth.draggable > .sticker > .shine,
+.sticker-book .sticker-wrapper.addDepth.draggable > .sticker > img {
   transition: transform 0.2s, top 0.2s ease-out, left 0.2s ease-out;
 }
 .sticker-book .sticker-wrapper.addDepth.draggable.dragging {
   filter: drop-shadow(calc(var(--stickerPickUpSize) * 2) calc(var(--stickerPickUpSize) * 2) 4px rgba(0, 0, 0, 0.1254901961));
 }
-.sticker-book .sticker-wrapper.addDepth.draggable.dragging img {
+.sticker-book .sticker-wrapper.addDepth.draggable.dragging > .sticker > .shine,
+.sticker-book .sticker-wrapper.addDepth.draggable.dragging > .sticker > img {
   transform: scale(calc(var(--stickerImageScale) + 0.1));
   top: calc(var(--stickerPickUpSize) * -1);
   left: calc(var(--stickerPickUpSize) * -1);
@@ -125,5 +147,17 @@
   }
   50% {
     transform: rotate(calc(-1 * var(--wiggleAmount)));
+  }
+}
+@keyframes shine {
+  0% {
+    background-position: right;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 0;
   }
 }/*# sourceMappingURL=sticker.css.map */
