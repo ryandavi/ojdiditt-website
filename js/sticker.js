@@ -60,7 +60,14 @@ var StickerApp = {
 
 	init: function () {
 		let container = document.getElementById(this.sticker_containerID);
-		console.log("init sticker");
+		console.log("init sticker app");
+
+		// reduce overlap on small screens
+		if(this.determineScreenSize == "small"){
+			this.sticker_overlapOffset /= 2.5; 
+			this.portrait_overlapOffset /= 2.5; 
+		}
+
 		if (container) {
 			console.log("has container");
 			this.stickers_array = container.querySelectorAll(this.sticker_itemSelector);
@@ -70,6 +77,7 @@ var StickerApp = {
 		}
 
 	},
+
 
 	determineOrientation: function() {
 		const width = window.innerWidth;
