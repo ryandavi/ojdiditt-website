@@ -72,49 +72,92 @@ var StickerApp = {
 
 	// resize
 	resizeDelayDuration: 500,
+	lastWindowSize: null,
+	resizeThreshold: 250,
+	doResetOnRefresh: true,
 
+	
 	init: function () {
 		console.log("Init sticker app...");
-
+	
 		let container = document.getElementById(this.sticker_containerID);
 		if (container) {
 			console.log("Valid container found...");
-
-			// reduce overlap on small screens
-			if (this.determineScreenSize() == "small") {
-				this.sticker_overlapOffset /= 3;
-				this.portrait_overlapOffset /= 3;
-			}
-
-			// resize event
-			let resizeTimeout;
-			window.addEventListener('resize', () => {
-				clearTimeout(resizeTimeout);
-				resizeTimeout = setTimeout(() => {
+	
+			this.adjustOverlapForScreenSize();
+			this.setWindowSize();
+			this.setupResizeListener();
+			this.setupVisibilityChangeListener();
+			this.setupRefreshButton();
+			this.initializeStickers(container);
+		}
+	},
+	
+	adjustOverlapForScreenSize: function () {
+		if (this.determineScreenSize() == "small") {
+			this.sticker_overlapOffset /= 3;
+			this.portrait_overlapOffset /= 3;
+		}
+	},
+	
+	setWindowSize: function () {
+		this.lastWindowSize = {
+			width: window.innerWidth,
+			height: window.innerHeight
+		};
+	},
+	
+	setupResizeListener: function () {
+		let resizeTimeout;
+		window.addEventListener('resize', () => {
+			clearTimeout(resizeTimeout);
+			resizeTimeout = setTimeout(() => {
+				const currentWindowSize = {
+					width: window.innerWidth,
+					height: window.innerHeight
+				};
+	
+				if (Math.abs(currentWindowSize.width - this.lastWindowSize.width) >= this.resizeThreshold ||
+					Math.abs(currentWindowSize.height - this.lastWindowSize.height) >= this.resizeThreshold) {
+					this.lastWindowSize = currentWindowSize;
 					this.onResize();
-				}, this.resizeDelayDuration); // Adjust the timeout delay as needed
-			});
+				} else {
+					console.log("Did not meet resize threshold");
+				}
 
-			document.addEventListener('visibilitychange', () => {
-				this.isActive = !document.hidden;
-				console.log(this.isActive);
-			});
+				this.setWindowSize();
 
-			// Setup refresh button click event listener
-			var button = document.getElementById('refreshButton');
-			setTimeout(function() {
+			}, this.resizeDelayDuration);
+		});
+	},
+	
+	setupVisibilityChangeListener: function () {
+		document.addEventListener('visibilitychange', () => {
+			this.isActive = !document.hidden;
+			console.log("Document Active: ", this.isActive);
+		});
+	},
+	
+	setupRefreshButton: function () {
+		var button = document.getElementById('refreshButton');
+		if(button){
+			// delay visibility
+			setTimeout(() => {
 				button.classList.add('visible');
 			}, 2500);
+		
+			// add click event
 			button.addEventListener('click', () => {
 				this.onRefreshButtonClick(button);
 			});
-
-			// do everything else
-			this.stickers_array = container.querySelectorAll(this.sticker_itemSelector);
-			this.imagesLoaded = false;
-			this.imagesLoadedTimeout = null;
-			this.loadImagesWithTimeout();
 		}
+	},
+	
+	initializeStickers: function (container) {
+		this.stickers_array = container.querySelectorAll(this.sticker_itemSelector);
+		this.imagesLoaded = false;
+		this.imagesLoadedTimeout = null;
+		this.loadImagesWithTimeout();
 	},
 
 	onRefreshButtonClick: function (button) {
@@ -133,10 +176,7 @@ var StickerApp = {
 
 	onResize() {
 		console.log("Resize event executed");
-
-		document.getElementById('refreshButton').click();
-
-		//this.refreshStickerPlacement();
+		if(this.doResetOnRefresh) document.getElementById('refreshButton').click();
 	},
 
 	refreshStickerPlacement: function () {
@@ -411,10 +451,15 @@ var StickerApp = {
 				// mobile
 				maxOffsetX *= 0.025;
 				maxOffsetY *= 0.075;
-			} else {
-				// square and desktop
+			}else if (this.determineOrientation() === "horizontal") {
+				// desktop
 				maxOffsetX *= 0.3;
 				maxOffsetY *= 0.1;
+			} else {
+				// square
+				maxOffsetX *= 0.05;
+				maxOffsetY *= 0.05;
+
 			}
 
 			x = this.getRandomInteger(

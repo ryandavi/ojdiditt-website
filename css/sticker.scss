@@ -18,7 +18,8 @@
 	--wiggleAmount: 1deg;
 	--wiggleDuration: .6s;
 
-	z-index: 1000000000000;
+	position: relative;
+    z-index: 0;
 
 	&.full-size {
 		background-color: transparent;
@@ -207,7 +208,10 @@
 	--activeScale: 0.8;
 	--hoverScale: 1.1;
 	--refreshDuration: .5s;
+
 	position: fixed;
+	z-index: 1;
+	
 	bottom: 20px;
 	right: 20px;
 
