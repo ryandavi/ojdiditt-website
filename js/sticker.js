@@ -6,6 +6,14 @@ var StickerApp = {
 	sticker_itemSelector: ".sticker-wrapper",
 	sticker_item_innerSelector: ".sticker",
 
+	isActive: true,
+
+	activeStickerClass: 'placed',
+	noOverlapClass: 'no-overlap',
+
+	// draggable
+	doDraggable: false,
+
 	// shine
 	doShine: true,
 	shineClass: "shine",
@@ -30,7 +38,7 @@ var StickerApp = {
 	surroundObjectID: "portrait",
 
 	// sparkle
-	sparkle_do: false,
+	doSparkle: false,
 	sparkle_itemSelector: ".sparkle",
 	sparkle_Interval: 2000,
 
@@ -44,7 +52,7 @@ var StickerApp = {
 
 	// loading timeout
 	loadTimeoutDuration: 2500,
-	loadTimeout: null,
+	loadTimeout: null, // the timeout function
 
 	//depth (scaling, shadows)
 	doDepth: true,
@@ -52,6 +60,7 @@ var StickerApp = {
 
 	// starting rotation
 	doRotate: true,
+	maxStickerRotation: 25, // in degrees
 
 	// placement
 	doRandomPlacement: true,
@@ -86,6 +95,17 @@ var StickerApp = {
 				}, this.resizeDelayDuration); // Adjust the timeout delay as needed
 			});
 
+			document.addEventListener('visibilitychange', () => {
+				this.isActive = !document.hidden;
+				console.log(this.isActive);
+			});
+
+			// Setup refresh button click event listener
+			document.getElementById('refreshButton').addEventListener('click', () => {
+				this.onRefreshButtonClick();
+			});
+
+
 			// do everything else
 			this.stickers_array = container.querySelectorAll(this.sticker_itemSelector);
 			this.imagesLoaded = false;
@@ -94,25 +114,39 @@ var StickerApp = {
 		}
 	},
 
+	onRefreshButtonClick: function () {
+		var button = document.getElementById('refreshButton');
+		if (!button.classList.contains('spin')) { // Check if the button is not spinning
+			button.blur();
+	
+			button.classList.add('spin');
+	
+			button.addEventListener('animationend', () => {
+				button.classList.remove('spin');
+				this.refreshStickerPlacement(); // Use this here
+			}, { once: true }); // Using arrow function to retain lexical scope
+		}
+	},
+
 	onResize() {
 		console.log("Resize event executed");
-	
+
 		this.refreshStickerPlacement();
 	},
 
-	refreshStickerPlacement: function(){
+	refreshStickerPlacement: function () {
 		if (this.doRandomPlacement) {
-	
+
 			// remove placed so we can set new locations
 			for (let i = 0; i < this.stickers_array.length; i++) {
-				this.stickers_array[i].classList.remove('placed');
-	
-				// remove reveal
+				this.stickers_array[i].classList.remove(this.activeStickerClass);
+
+				// remove reveal class
 				if (this.doReveal) {
 					this.stickers_array[i].classList.remove(this.revealClassName);
 				}
 			}
-	
+
 			// rereveal
 			if (this.doReveal) {
 				setTimeout(() => {
@@ -151,12 +185,10 @@ var StickerApp = {
 	},
 
 
-	
-
 	loadImagesWithTimeout: function () {
 		const images = Array.from(this.stickers_array).map(sticker => sticker.querySelector('img'));
 		const imagesToLoad = images.filter(img => img !== null);
-	
+
 		if (imagesToLoad.length === 0) {
 			// No images to load
 			this.imagesLoaded = true;
@@ -164,7 +196,7 @@ var StickerApp = {
 		} else {
 			let loadedImagesCount = 0;
 			this.loadTimeout = null; // Initialize this.loadTimeout to null
-	
+
 			const onImageLoadOrError = (isError) => {
 				// Increment loadedImagesCount regardless of whether it's an error or load event
 				loadedImagesCount++;
@@ -193,18 +225,18 @@ var StickerApp = {
 					img.addEventListener('error', () => onImageLoadOrError(true)); // Pass true for error event
 				}
 			});
-	
+
 			// Timeout
 			this.loadTimeout = setTimeout(() => {
 				if (loadedImagesCount === imagesToLoad.length) {
 					console.log("Image loading timeout not needed")
-				}else{
+				} else {
 					// If timeout is reached, mark images as loaded, execute initialization functions, and log a timeout message
 					console.log(`Timeout: ${imagesToLoad.length} - ${loadedImagesCount} images did not load within ${this.loadTimeoutDuration}ms.`);
 					this.imagesLoaded = true;
 					this.executeInitFunctions();
 				}
-			}, this.loadTimeoutDuration); 
+			}, this.loadTimeoutDuration);
 		}
 	},
 
@@ -227,21 +259,64 @@ var StickerApp = {
 			this.setIntervalShine();
 		}
 
+		if (this.doSparkle) {
+			this.setSparkle();
+			this.setSparkleInterval();
+		}
 
 		if (this.doReveal) {
 			this.revealStickerOneByOne();
 		}
 
+	},
 
 
-		if (this.sparkle_do) {
-			setInterval(function () {
-				this.SetSparkle();
-			}, sparkle_Interval);
-
-			this.setSparkle();
+	// SHAKE
+	shakeSticker: function (element) {
+		if (!element.classList.contains(this.shakeClass)) {
+			element.classList.add(this.shakeClass);
+			element.addEventListener('animationend', () => {
+				element.classList.remove(this.shakeClass);
+			});
 		}
+	},
 
+	shakeRandomSticker: function () {
+		var random = this.getRandomInteger(0, this.stickers_array.length - 1);
+		this.shakeSticker(this.stickers_array[random]);
+	},
+
+	setIntervalShake: function () {
+		setInterval(() => {
+			if (this.isActive) this.shakeRandomSticker();
+		}, this.sticker_shakeInterval);
+	},
+
+	setSparkleInterval: function () {
+		setInterval(() => {
+			if (this.isActive) this.SetSparkle();
+		}, this.sparkle_Interval);
+	},
+
+	setIntervalShine: function () {
+		setInterval(() => {
+			if (this.isActive) this.shineRandomSticker();
+		}, this.shineInterval);
+	},
+
+	shineRandomSticker: function () {
+		var random = this.getRandomInteger(0, this.stickers_array.length - 1);
+		this.shineSticker(this.stickers_array[random]);
+	},
+
+
+	shineSticker: function (element) {
+		if (!element.classList.contains(this.shineClass)) {
+			element.classList.add(this.shineClass);
+			element.addEventListener('animationend', () => {
+				element.classList.remove(this.shineClass);
+			});
+		}
 	},
 
 
@@ -309,11 +384,12 @@ var StickerApp = {
 		this.placeSticker(sticker, constrainedPosition.x, constrainedPosition.y);
 
 		const stickerRect = sticker.getBoundingClientRect();
-		const noOverlapElements = document.querySelectorAll('.no-overlap');
-		const elementsToCheck = checkNoOverlapOnly ? noOverlapElements : document.querySelectorAll('.sticker-wrapper.placed, .no-overlap');
+		const noOverlapSelector = `.${this.noOverlapClass}`;
+		const placedSelector = `${this.sticker_itemSelector}.${this.activeStickerClass}`;
+		const elementsToCheck = checkNoOverlapOnly ? document.querySelectorAll(noOverlapSelector) : document.querySelectorAll(`${placedSelector}, ${noOverlapSelector}`);
 
 		if (!this.isOverlapDetected(stickerRect, elementsToCheck, checkNoOverlapOnly ? this.portrait_overlapOffset : this.sticker_overlapOffset)) {
-			sticker.classList.add('placed');
+			sticker.classList.add(this.activeStickerClass);
 			return true;
 		}
 		return false;
@@ -327,9 +403,11 @@ var StickerApp = {
 			let maxOffsetY = portraitElement.offsetHeight;
 
 			if (this.determineOrientation() === "vertical") {
+				// mobile
 				maxOffsetX *= 0.025;
 				maxOffsetY *= 0.075;
 			} else {
+				// square and desktop
 				maxOffsetX *= 0.3;
 				maxOffsetY *= 0.1;
 			}
@@ -383,47 +461,6 @@ var StickerApp = {
 	},
 
 
-	// SHAKE
-	shakeSticker: function (element) {
-		if (!element.classList.contains(this.shakeClass)) {
-			element.classList.add(this.shakeClass);
-			element.addEventListener('animationend', () => {
-				element.classList.remove(this.shakeClass);
-			});
-		}
-	},
-
-	shakeRandomSticker: function () {
-		var random = this.getRandomInteger(0, this.stickers_array.length - 1);
-		this.shakeSticker(this.stickers_array[random]);
-	},
-
-	setIntervalShake: function () {
-		setInterval(() => {
-			this.shakeRandomSticker();
-		}, this.sticker_shakeInterval);
-	},
-	
-	setIntervalShine: function () {
-		setInterval(() => {
-			this.shineRandomSticker();
-		}, this.shineInterval);
-	},
-
-	shineRandomSticker: function () {
-		var random = this.getRandomInteger(0, this.stickers_array.length - 1);
-		this.shineSticker(this.stickers_array[random]);
-	},
-
-
-	shineSticker: function (element) {
-		if (!element.classList.contains(this.shineClass)) {
-			element.classList.add(this.shineClass);
-			element.addEventListener('animationend', () => {
-				element.classList.remove(this.shineClass);
-			});
-		}
-	},
 
 	setStickerLocations: function () {
 		this.stickers_array.forEach((item) => {
@@ -439,7 +476,7 @@ var StickerApp = {
 		return Math.random() * (max - min) + min;
 	},
 
-	maxRotation: 25,
+
 
 	// Function to set random rotation to an element
 	setRandomRotation: function (element) {
@@ -454,7 +491,7 @@ var StickerApp = {
 		}
 
 		// Generate a random rotation value between -maxRotation and maxRotation
-		var additionalRotation = this.getRandomNumber(-this.maxRotation, this.maxRotation);
+		var additionalRotation = this.getRandomNumber(-this.maxStickerRotation, this.maxStickerRotation);
 
 		// Calculate the new rotation including existing rotation
 		var totalRotation = existingRotation + additionalRotation;
@@ -470,8 +507,6 @@ var StickerApp = {
 
 			var clickStartTime; // Variable to store the start time of the click
 			var clickEndTime; // Variable to store the end time of the click
-			let rafId;
-
 
 			item.addEventListener("mousedown", startDrag, { passive: false });
 			item.addEventListener("touchstart", startDrag, { passive: false });
@@ -479,18 +514,17 @@ var StickerApp = {
 			// add draggable class
 			item.classList.add("draggable");
 
-			// Make it already visible if not doing
+			// Make it already visible if not doing a reveal
 			if (self.doReveal == false) {
 				item.classList.add(self.revealClassName);
 			}
 
-			// Make it already visible if not doing
+			// add depth
 			if (self.doDepth == true) {
 				item.classList.add(self.depthClassName);
 			}
 
 			function startDrag(event) {
-				//event.preventDefault(); // Prevent default touch behavior
 
 				// add dragging class
 				item.classList.add("dragging");
@@ -522,18 +556,10 @@ var StickerApp = {
 				self.highestZIndex += 1;
 				item.style.zIndex = self.highestZIndex;
 
-				function elementDrag(e) {
-					if (rafId) return;
-					rafId = window.requestAnimationFrame(() => onElementDrag(e));
-				}
 
 				function onMove(event) {
 					event.preventDefault(); // Prevent default touch behavior
-
-
-
 					var x, y;
-
 					if (isTouch) {
 						var touch = event.touches[0];
 						x = touch.clientX - offsetX;
@@ -550,17 +576,15 @@ var StickerApp = {
 
 					item.style.left = x + "px";
 					item.style.top = y + "px";
-
-					rafId = null;
 				}
 
-				function onEnd() {
-					// event.preventDefault();
+
+				function onEnd(event) {
 					event.preventDefault(); // Prevent default touch behavior
 
+					// done dragging so remove everything related to that
 					document.removeEventListener(isTouch ? "touchmove" : "mousemove", onMove);
 					document.removeEventListener(isTouch ? "touchend" : "mouseup", onEnd);
-
 					item.classList.remove("dragging");
 
 					clickEndTime = new Date().getTime(); // Record the end time of the click
@@ -583,9 +607,11 @@ var StickerApp = {
 
 					// Check if distance is too low
 					if (distance < self.movementThreshold || clickDuration < self.clickDurationThreshold) {
-						console.log("Distance moved is too low.");
+						console.log("Distance moved or duration below threshold - register as click");
 
 						var linkElement = event.target.querySelector("a");
+
+						// if it's not a right click
 						if (linkElement && event.button !== 2) {
 							console.log(linkElement);
 							// If a link element is found, navigate to it
@@ -594,7 +620,7 @@ var StickerApp = {
 
 						// Log message to your log
 					} else {
-						// Set percentage
+						// not a click - Set percentage if needed
 						if (self.convertToPercent == true) {
 							item.style.left = self.convertPixelToPercent(item.style.left, window.innerWidth);
 							item.style.top = self.convertPixelToPercent(item.style.top, window.innerHeight);
@@ -608,25 +634,33 @@ var StickerApp = {
 		});
 	},
 
+	calculateDistance: function (x1, y1, x2, y2) {
+		const distanceX = Math.abs(x2 - x1);
+		const distanceY = Math.abs(y2 - y1);
+		return Math.sqrt(Math.pow(distanceX, 2) + Math.pow(distanceY, 2));
+	},
+
 	setSparkle: function (sparkle_itemName) {
-		var newx = getRandomInteger(0, window.innerWidth - $(sparkle_itemName).width());
-		var newy = getRandomInteger(0, window.innerHeight - $(sparkle_itemName).height());
+		var sparkleItem = document.querySelector(sparkle_itemName);
+		var sparkleWidth = sparkleItem.offsetWidth;
+		var sparkleHeight = sparkleItem.offsetHeight;
+		var windowWidth = window.innerWidth;
+		var windowHeight = window.innerHeight;
 
-		// Limit to bounds
-		if (newx + $(sparkle_itemName).width() > window.innerWidth) newx = window.innerWidth - $(sparkle_itemName).width();
-		if (newx + $(sparkle_itemName).width() <= 0) newx = 0;
-		if (newy + $(sparkle_itemName).height() > window.innerHeight) newy = window.innerHeight - $(sparkle_itemName).height();
-		if (newy + $(sparkle_itemName).height() <= 0) newy = 0;
+		var newx = getRandomInteger(0, windowWidth - sparkleWidth);
+		var newy = getRandomInteger(0, windowHeight - sparkleHeight);
 
-		// Pixel to Percentage Conversion
+		// Clamp values to bounds
+		newx = Math.max(0, Math.min(newx, windowWidth - sparkleWidth));
+		newy = Math.max(0, Math.min(newy, windowHeight - sparkleHeight));
 
-		$(sparkle_itemName).css('top', convertPixelToPercent(newy, window.innerHeight));
-		$(sparkle_itemName).css('left', convertPixelToPercent(newx, window.innerWidth));
+		// Pixel to percentage conversion
+		sparkleItem.style.top = convertPixelToPercent(newy, windowHeight);
+		sparkleItem.style.left = convertPixelToPercent(newx, windowWidth);
 
 		// Reload Image
-		var d = new Date();
-		var new_url = "images/particle/sparkle-playonce.png";
-		$(sparkle_itemName).find("img").attr("src", new_url + "?" + d.getTime());
+		var newUrl = "images/particle/sparkle-playonce.png?" + new Date().getTime();
+		sparkleItem.querySelector("img").src = newUrl;
 	},
 
 	convertPixelToPercent: function (pixelValue, containerWidth) {

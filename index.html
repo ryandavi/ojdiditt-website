@@ -2,34 +2,42 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Content-Language" content="en-US">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta charset="UTF-8">
+	<meta http-equiv="Content-Language" content="en-US">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>OJDIDITT - COMING SOON!</title>
 	<link rel="stylesheet" href="css/style.css">
 	<link rel="stylesheet" href="css/sticker.css">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
-        rel="stylesheet">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+		rel="stylesheet">
 </head>
 
 <body>
+	<button id="refreshButton">
+		<svg class="refresh-icon" viewBox="0 0 65 65" xmlns="http://www.w3.org/2000/svg">
+			<g id="Layer_3_copy_2">
+				<g>
+					<path class="st0" d="M32.5,5c-5.4,0-10.4,1.6-14.7,4.3l-5.8-5.8v16.1h16.1l-6.4-6.4c3.2-1.8,6.8-2.8,10.7-2.8
+					c12.2,0,22.1,9.9,22.1,22.1c0,2.9-0.6,5.7-1.6,8.2l4.7,2.8c1.5-3.4,2.3-7.1,2.3-11C60,17.3,47.7,5,32.5,5z" />
+					<path class="st0" d="M43.2,51.7c-3.2,1.8-6.8,2.8-10.7,2.8c-12.2,0-22.1-9.9-22.1-22.1c0-2.7,0.5-5.4,1.4-7.8l-4.7-2.9
+					C5.8,25.1,5,28.7,5,32.5C5,47.7,17.3,60,32.5,60c5.4,0,10.4-1.6,14.7-4.3l5.8,5.8V45.4H36.8L43.2,51.7z" />
+				</g>
+			</g>
+		</svg>
+	</button>
 	<div id="sticker-book" class="sticker-book full-size">
-
 		<div id="portrait" class="portrait-wrapper">
 			<div class="collision no-overlap"></div>
 			<img class="portrait" src="images/photo.png">
 		</div>
-		
-
 		<div class="sticker-wrapper">
 			<div class="sticker">
 				<div class="shine" style="mask-image: url('images/stickers/1.png')"></div>
 				<img fetchPriority="high" alt="Sticker" draggable="false" src="images/stickers/1.png">
 			</div>
 		</div>
-
 		<div class="sticker-wrapper">
 			<div class="sticker">
 				<div class="shine" style="mask-image: url('images/stickers/2.png')"></div>
@@ -108,10 +116,6 @@
 				<img fetchpriority="high" alt="Sticker" draggable="false" src="images/stickers/14.png">
 			</div>
 		</div>
-
-
-
-
 		<div class="sticker-wrapper">
 			<div class="sticker">
 				<div class="shine" style="mask-image: url('images/stickers/15.png')"></div>
@@ -172,56 +176,49 @@
 				<img fetchpriority="high" alt="Sticker" draggable="false" src="images/stickers/24.png">
 			</div>
 		</div>
-
 		<div class="sticker-wrapper small">
 			<div class="sticker">
 				<div class="shine" style="mask-image: url('images/stickers/253.png')"></div>
 				<img fetchpriority="high" alt="Sticker" draggable="false" src="images/stickers/25.png">
 			</div>
 		</div>
-
 		<div class="sticker-wrapper">
 			<div class="sticker">
 				<div class="shine" style="mask-image: url('images/stickers/26.png')"></div>
 				<img fetchpriority="high" alt="Sticker" draggable="false" src="images/stickers/26.png">
 			</div>
 		</div>
-
 		<div class="sticker-wrapper">
 			<div class="sticker">
 				<div class="shine" style="mask-image: url('images/stickers/27.png')"></div>
 				<img fetchpriority="high" alt="Sticker" draggable="false" src="images/stickers/27.png">
 			</div>
 		</div>
-
-
-
-
 	</div>
 	</div>
 	<script src="js/sticker.js"></script>
 	<script>
-	const StickerSite = {
+		const StickerSite = {
 
-		init: function() {
-			this.setPortraitRotation();
-		},
+			init: function () {
+				this.setPortraitRotation();
+			},
 
-		getRandomInRange: function(min, max) {
-			return Math.random() * (max - min) + min;
-		},
+			getRandomInRange: function (min, max) {
+				return Math.random() * (max - min) + min;
+			},
 
-		setPortraitRotation: function(){
-			const img = document.querySelector('#portrait img');
-			const randomAngle = this.getRandomInRange(-2, 2);
-			img.style.transform = `rotate(${randomAngle}deg)`;
-		}
-	};
+			setPortraitRotation: function () {
+				const img = document.querySelector('#portrait img');
+				const randomAngle = this.getRandomInRange(-2, 2);
+				img.style.transform = `rotate(${randomAngle}deg)`;
+			}
+		};
 
-	// Initialize StickerSite
-	document.addEventListener("DOMContentLoaded", function() {
-		StickerSite.init();
-	});
+		// Initialize StickerSite
+		document.addEventListener("DOMContentLoaded", function () {
+			StickerSite.init();
+		});
 
 
 

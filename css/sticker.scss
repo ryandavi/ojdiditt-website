@@ -68,7 +68,7 @@
 		&.shine {
 			>.sticker {
 				>.shine {
-					position:  absolute;
+					position: absolute;
 					top: 0;
 					left: 0;
 					z-index: 1;
@@ -76,7 +76,7 @@
 					height: 100%;
 					mask-size: 100%;
 					background:
-					linear-gradient(135deg, #0000 45%, rgba(255, 255, 255, 0.6) 55%, #0000 60%) transparent;
+						linear-gradient(135deg, #0000 45%, rgba(255, 255, 255, 0.6) 55%, #0000 60%) transparent;
 					background-size: 300% 100%;
 					animation: shine 2.5s 1;
 					opacity: 0;
@@ -92,7 +92,7 @@
 			max-height: inherit;
 			position: relative;
 
-			> img {
+			>img {
 				// width: 100%;
 				// height: 100%;
 				object-fit: cover;
@@ -116,9 +116,11 @@
 
 			&.visible {
 				opacity: 1;
+
 				>.sticker {
-					> .shine,
-					> img {
+
+					>.shine,
+					>img {
 						// scale it to actual size
 						transform: scale(var(--stickerImageScale));
 					}
@@ -144,14 +146,16 @@
 
 			&.draggable {
 				transition: opacity 0.3s linear, filter .2s ease-out;
+
 				>.sticker {
-					> img {
+					>img {
 						position: relative;
 						top: 0;
 						left: 0;
 					}
-					> .shine, 
-					> img {
+
+					>.shine,
+					>img {
 						transition: transform .2s, top .2s ease-out, left .2s ease-out;
 					}
 				}
@@ -162,8 +166,9 @@
 					filter: drop-shadow(calc(var(--stickerPickUpSize) * 2) calc(var(--stickerPickUpSize) * 2) 4px #00000020);
 
 					>.sticker {
-						> .shine,
-						> img {
+
+						>.shine,
+						>img {
 							transform: scale(calc(var(--stickerImageScale) + .1));
 							top: calc(var(--stickerPickUpSize) * -1);
 							left: calc(var(--stickerPickUpSize) * -1);
@@ -198,7 +203,77 @@
 	}
 }
 
+#refreshButton {
+	--activeScale: 0.8;
+	--hoverScale: 1.1;
+	--refreshDuration: .5s;
+	position: fixed;
+	bottom: 20px;
+	right: 20px;
+
+	border: none;
+	border-radius: 50%;
+	width: 70px;
+	height: 70px;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+
+
+	transition: background-color 1s, transform 0.25s;
+
+	-webkit-tap-highlight-color: transparent;
+	background-color: #007bff30;
+
+	&:hover {
+		transform: scale(var(--hoverScale));
+	}
+
+	&:hover,
+	&:active,
+	&.spin {
+		background-color: #007bff;
+	}
+
+	&:active,
+	&.spin {
+		transform: scale(var(--activeScale));
+	}
+
+	&.spin {
+		animation: spin var(--refreshDuration) linear;
+	}
+
+	>.refresh-icon {
+		width: 80%;
+		height: 80%;
+		fill: white;
+	}
+
+}
+
+@media (max-width: 1024px) {
+	#refreshButton {
+		width: 40px;
+		height: 40px;
+	}
+}
+
+@keyframes spin {
+	from {
+		transform: scale(var(--activeScale)) rotate(0deg);
+	}
+
+	to {
+		transform: scale(var(--activeScale)) rotate(-360deg);
+	}
+}
+
+
 @keyframes wiggle {
+
 	0%,
 	100% {
 		transform: rotate(0deg);
@@ -216,17 +291,20 @@
 
 @keyframes shine {
 	0% {
-	  background-position: right;
-	  opacity: 0;
+		background-position: right;
+		opacity: 0;
 	}
+
 	5% {
 		opacity: 1;
 	}
+
 	95% {
 		opacity: 0;
 	}
+
 	100% {
 		background-position: left;
 	}
-  
-  }
+
+}

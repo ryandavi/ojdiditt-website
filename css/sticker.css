@@ -140,6 +140,57 @@
     max-height: var(--stickerSmallMobileSize);
   }
 }
+#refreshButton {
+  --activeScale: 0.8;
+  --hoverScale: 1.1;
+  --refreshDuration: .5s;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  border: none;
+  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 1s, transform 0.25s;
+  -webkit-tap-highlight-color: transparent;
+  background-color: rgba(0, 123, 255, 0.1882352941);
+}
+#refreshButton:hover {
+  transform: scale(var(--hoverScale));
+}
+#refreshButton:hover, #refreshButton:active, #refreshButton.spin {
+  background-color: #007bff;
+}
+#refreshButton:active, #refreshButton.spin {
+  transform: scale(var(--activeScale));
+}
+#refreshButton.spin {
+  animation: spin var(--refreshDuration) linear;
+}
+#refreshButton > .refresh-icon {
+  width: 80%;
+  height: 80%;
+  fill: white;
+}
+
+@media (max-width: 1024px) {
+  #refreshButton {
+    width: 40px;
+    height: 40px;
+  }
+}
+@keyframes spin {
+  from {
+    transform: scale(var(--activeScale)) rotate(0deg);
+  }
+  to {
+    transform: scale(var(--activeScale)) rotate(-360deg);
+  }
+}
 @keyframes wiggle {
   0%, 100% {
     transform: rotate(0deg);
