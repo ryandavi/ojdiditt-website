@@ -11,7 +11,7 @@ var StickerApp = {
 	noOverlapClass: 'no-overlap',
 
 	// draggable
-	doDraggable: false,
+	doDraggable: true,
 
 	// layering
 	highestZIndex: 0,
