@@ -1,18 +1,21 @@
 var StickerApp = {
 
+	isActive: true,
 	stickers_array: [],
 
+	// sticker classes
 	sticker_containerID: "sticker-book",
 	sticker_itemSelector: ".sticker-wrapper",
 	sticker_item_innerSelector: ".sticker",
-
-	isActive: true,
-
 	activeStickerClass: 'placed',
 	noOverlapClass: 'no-overlap',
 
 	// draggable
 	doDraggable: false,
+
+	// layering
+	highestZIndex: 0,
+	sticker_overlapIterations: 50,
 
 	// shine
 	doShine: true,
@@ -25,9 +28,10 @@ var StickerApp = {
 	sticker_shakeInterval: 3000,
 	shakeClass: 'temp-shake',
 
-	// layering
-	highestZIndex: 0,
-	sticker_overlapIterations: 50,
+	// sparkle
+	doSparkle: false,
+	sparkle_itemSelector: ".sparkle",
+	sparkle_Interval: 2000,
 
 	// overlap, in pixels
 	sticker_overlapOffset: 20,
@@ -36,11 +40,6 @@ var StickerApp = {
 	// surround Object
 	doSurroundObject: true,
 	surroundObjectID: "portrait",
-
-	// sparkle
-	doSparkle: false,
-	sparkle_itemSelector: ".sparkle",
-	sparkle_Interval: 2000,
 
 	// reveal
 	doReveal: true,
@@ -54,7 +53,7 @@ var StickerApp = {
 	loadTimeoutDuration: 2500,
 	loadTimeout: null, // the timeout function
 
-	//depth (scaling, shadows)
+	// depth (scaling, shadows)
 	doDepth: true,
 	depthClassName: "addDepth",
 
@@ -70,44 +69,64 @@ var StickerApp = {
 	movementThreshold: 5,
 	clickDurationThreshold: 125,
 
-	// resize
+	// page size / resize
 	resizeDelayDuration: 500,
 	lastWindowSize: null,
+	windowOrientation: null,
+	deviceType: null,
 	resizeThreshold: 250,
 	doResetOnRefresh: true,
 
-	
 	init: function () {
 		console.log("Init sticker app...");
-	
+
 		let container = document.getElementById(this.sticker_containerID);
 		if (container) {
 			console.log("Valid container found...");
-	
-			this.adjustOverlapForScreenSize();
 			this.setWindowSize();
-			this.setupResizeListener();
-			this.setupVisibilityChangeListener();
-			this.setupRefreshButton();
-			this.initializeStickers(container);
+			this.setResizeListener();
+			this.setActiveListener();
+			this.setRefreshButton();
+			this.initStickers(container);
 		}
 	},
-	
-	adjustOverlapForScreenSize: function () {
-		if (this.determineScreenSize() == "small") {
-			this.sticker_overlapOffset /= 3;
-			this.portrait_overlapOffset /= 3;
-		}
-	},
-	
+
 	setWindowSize: function () {
 		this.lastWindowSize = {
 			width: window.innerWidth,
 			height: window.innerHeight
 		};
+
+		this.windowOrientation = this.getWindowOrientation();
+		this.deviceType = this.getDeviceType();
 	},
-	
-	setupResizeListener: function () {
+
+	getWindowOrientation: function () {
+		const width = window.innerWidth;
+		const height = window.innerHeight;
+
+		const aspectRatio = width / height;
+
+		if (aspectRatio > 1.2) {
+			return 'horizontal';
+		} else if (aspectRatio < 0.8) {
+			return 'vertical';
+		} else {
+			return 'square';
+		}
+	},
+
+	getDeviceType: function () {
+		const width = window.innerWidth;
+
+		if (width >= 1024) {
+			return 'desktop'; // Large screen, typically desktop
+		} else {
+			return 'mobile'; // Small screen, typically mobile or tablet
+		}
+	},
+
+	setResizeListener: function () {
 		let resizeTimeout;
 		window.addEventListener('resize', () => {
 			clearTimeout(resizeTimeout);
@@ -116,7 +135,7 @@ var StickerApp = {
 					width: window.innerWidth,
 					height: window.innerHeight
 				};
-	
+
 				if (Math.abs(currentWindowSize.width - this.lastWindowSize.width) >= this.resizeThreshold ||
 					Math.abs(currentWindowSize.height - this.lastWindowSize.height) >= this.resizeThreshold) {
 					this.lastWindowSize = currentWindowSize;
@@ -125,58 +144,59 @@ var StickerApp = {
 					console.log("Did not meet resize threshold");
 				}
 
+				// set window size here because the screensize changed regardless if it met the threshold
 				this.setWindowSize();
 
 			}, this.resizeDelayDuration);
 		});
 	},
-	
-	setupVisibilityChangeListener: function () {
+
+	setActiveListener: function () {
 		document.addEventListener('visibilitychange', () => {
 			this.isActive = !document.hidden;
 			console.log("Document Active: ", this.isActive);
 		});
 	},
-	
-	setupRefreshButton: function () {
+
+	setRefreshButton: function () {
 		var button = document.getElementById('refreshButton');
-		if(button){
+		if (button) {
 			// delay visibility
 			setTimeout(() => {
 				button.classList.add('visible');
 			}, 2500);
-		
+
 			// add click event
 			button.addEventListener('click', () => {
 				this.onRefreshButtonClick(button);
 			});
 		}
 	},
-	
-	initializeStickers: function (container) {
+
+	onRefreshButtonClick: function (button) {
+
+		if (!button.classList.contains('spin')) { // Check if the button is not spinning
+			button.blur();
+
+			button.classList.add('spin');
+
+			button.addEventListener('animationend', () => {
+				button.classList.remove('spin');
+				this.refreshStickerPlacement();
+			}, { once: true });
+		}
+	},
+
+	initStickers: function (container) {
 		this.stickers_array = container.querySelectorAll(this.sticker_itemSelector);
 		this.imagesLoaded = false;
 		this.imagesLoadedTimeout = null;
 		this.loadImagesWithTimeout();
 	},
 
-	onRefreshButtonClick: function (button) {
-
-		if (!button.classList.contains('spin')) { // Check if the button is not spinning
-			button.blur();
-	
-			button.classList.add('spin');
-	
-			button.addEventListener('animationend', () => {
-				button.classList.remove('spin');
-				this.refreshStickerPlacement(); // Use this here
-			}, { once: true }); // Using arrow function to retain lexical scope
-		}
-	},
-
 	onResize() {
 		console.log("Resize event executed");
-		if(this.doResetOnRefresh) document.getElementById('refreshButton').click();
+		if (this.doResetOnRefresh) document.getElementById('refreshButton').click();
 	},
 
 	refreshStickerPlacement: function () {
@@ -204,32 +224,6 @@ var StickerApp = {
 		}
 	},
 
-	determineOrientation: function () {
-		const width = window.innerWidth;
-		const height = window.innerHeight;
-
-		const aspectRatio = width / height;
-
-		if (aspectRatio > 1.2) {
-			return 'horizontal';
-		} else if (aspectRatio < 0.8) {
-			return 'vertical';
-		} else {
-			return 'square';
-		}
-	},
-
-	determineScreenSize: function () {
-		const width = window.innerWidth;
-
-		if (width >= 1024) {
-			return 'large'; // Large screen, typically desktop
-		} else {
-			return 'small'; // Small screen, typically mobile or tablet
-		}
-	},
-
-
 	loadImagesWithTimeout: function () {
 		const images = Array.from(this.stickers_array).map(sticker => sticker.querySelector('img'));
 		const imagesToLoad = images.filter(img => img !== null);
@@ -237,10 +231,10 @@ var StickerApp = {
 		if (imagesToLoad.length === 0) {
 			// No images to load
 			this.imagesLoaded = true;
-			this.executeInitFunctions();
+			this.initStickerFunctions();
 		} else {
 			let loadedImagesCount = 0;
-			this.loadTimeout = null; // Initialize this.loadTimeout to null
+			this.loadTimeout = null;
 
 			const onImageLoadOrError = (isError) => {
 				// Increment loadedImagesCount regardless of whether it's an error or load event
@@ -251,7 +245,7 @@ var StickerApp = {
 					console.log(`${loadedImagesCount} sticker images loaded`);
 					this.imagesLoaded = true;
 					clearTimeout(this.loadTimeout);
-					this.executeInitFunctions();
+					this.initStickerFunctions();
 				}
 
 				// If it's an error event, log an error message
@@ -279,24 +273,26 @@ var StickerApp = {
 					// If timeout is reached, mark images as loaded, execute initialization functions, and log a timeout message
 					console.log(`Timeout: ${imagesToLoad.length} - ${loadedImagesCount} images did not load within ${this.loadTimeoutDuration}ms.`);
 					this.imagesLoaded = true;
-					this.executeInitFunctions();
+					this.initStickerFunctions();
 				}
 			}, this.loadTimeoutDuration);
 		}
 	},
 
-	executeInitFunctions: function () {
+	initStickerFunctions: function () {
 		console.log("Execute init functions");
 
 		if (this.doRandomPlacement) {
 			this.setStickerLocations();
 		}
 
-		this.makeDraggable();
-
+		if(this.doDraggable){
+			this.makeDraggable();
+		}
+		
 		if (this.doShake) {
 			this.shakeRandomSticker();
-			this.setIntervalShake();
+			this.setShakeInterval();
 		}
 
 		if (this.doShine) {
@@ -316,7 +312,11 @@ var StickerApp = {
 	},
 
 
-	// SHAKE
+	/**********
+	*
+	*  SHAKE
+	*
+	**********/
 	shakeSticker: function (element) {
 		if (!element.classList.contains(this.shakeClass)) {
 			element.classList.add(this.shakeClass);
@@ -331,10 +331,38 @@ var StickerApp = {
 		this.shakeSticker(this.stickers_array[random]);
 	},
 
-	setIntervalShake: function () {
+	setShakeInterval: function () {
 		setInterval(() => {
 			if (this.isActive) this.shakeRandomSticker();
 		}, this.sticker_shakeInterval);
+	},
+
+	/************
+	*
+	*  SPARKLE
+	*
+	************/
+	setSparkle: function (sparkle_itemName) {
+		var sparkleItem = document.querySelector(sparkle_itemName);
+		var sparkleWidth = sparkleItem.offsetWidth;
+		var sparkleHeight = sparkleItem.offsetHeight;
+		var windowWidth = window.innerWidth;
+		var windowHeight = window.innerHeight;
+
+		var newx = getRandomInteger(0, windowWidth - sparkleWidth);
+		var newy = getRandomInteger(0, windowHeight - sparkleHeight);
+
+		// Clamp values to bounds
+		newx = Math.max(0, Math.min(newx, windowWidth - sparkleWidth));
+		newy = Math.max(0, Math.min(newy, windowHeight - sparkleHeight));
+
+		// Pixel to percentage conversion
+		sparkleItem.style.top = convertPixelToPercent(newy, windowHeight);
+		sparkleItem.style.left = convertPixelToPercent(newx, windowWidth);
+
+		// Reload Image
+		var newUrl = "images/particle/sparkle-playonce.png?" + new Date().getTime();
+		sparkleItem.querySelector("img").src = newUrl;
 	},
 
 	setSparkleInterval: function () {
@@ -343,6 +371,11 @@ var StickerApp = {
 		}, this.sparkle_Interval);
 	},
 
+	/**********
+	*
+	*  SHINE
+	*
+	**********/
 	setIntervalShine: function () {
 		setInterval(() => {
 			if (this.isActive) this.shineRandomSticker();
@@ -354,7 +387,6 @@ var StickerApp = {
 		this.shineSticker(this.stickers_array[random]);
 	},
 
-
 	shineSticker: function (element) {
 		if (!element.classList.contains(this.shineClass)) {
 			element.classList.add(this.shineClass);
@@ -363,8 +395,6 @@ var StickerApp = {
 			});
 		}
 	},
-
-
 
 	// Function to reveal stickers one by one
 	revealStickerOneByOne: function () {
@@ -382,19 +412,6 @@ var StickerApp = {
 			}
 		}
 	},
-
-
-
-	getRandomInteger: function (min, max) {
-		return Math.floor(Math.random() * (max - min + 1)) + min;
-	},
-
-	convertPixelToPercent: function (val, dimension) {
-		return (parseInt(val) / (dimension / 100)) + "%";
-	},
-
-
-
 
 	setStickerPlacement: function (sticker) {
 		const pageWidth = window.innerWidth;
@@ -433,7 +450,16 @@ var StickerApp = {
 		const placedSelector = `${this.sticker_itemSelector}.${this.activeStickerClass}`;
 		const elementsToCheck = checkNoOverlapOnly ? document.querySelectorAll(noOverlapSelector) : document.querySelectorAll(`${placedSelector}, ${noOverlapSelector}`);
 
-		if (!this.isOverlapDetected(stickerRect, elementsToCheck, checkNoOverlapOnly ? this.portrait_overlapOffset : this.sticker_overlapOffset)) {
+		let temp_sticker_overlap = this.sticker_overlapOffset;
+		let temp_portrait_overlap = this.portrait_overlapOffset;
+
+		// reduce overlap on mobile because stickers are smaller
+		if (this.deviceType == "mobile") {
+			temp_sticker_overlap /= 3;
+			temp_portrait_overlap /= 3;
+		}
+
+		if (!this.isOverlapDetected(stickerRect, elementsToCheck, checkNoOverlapOnly ? temp_portrait_overlap : temp_sticker_overlap)) {
 			sticker.classList.add(this.activeStickerClass);
 			return true;
 		}
@@ -447,11 +473,11 @@ var StickerApp = {
 			let maxOffsetX = portraitElement.offsetWidth;
 			let maxOffsetY = portraitElement.offsetHeight;
 
-			if (this.determineOrientation() === "vertical") {
+			if (this.windowOrientation === "vertical") {
 				// mobile
 				maxOffsetX *= 0.025;
 				maxOffsetY *= 0.075;
-			}else if (this.determineOrientation() === "horizontal") {
+			} else if (this.windowOrientation === "horizontal") {
 				// desktop
 				maxOffsetX *= 0.3;
 				maxOffsetY *= 0.1;
@@ -510,8 +536,6 @@ var StickerApp = {
 			rect1.top > rect2.bottom - offset);
 	},
 
-
-
 	setStickerLocations: function () {
 		this.stickers_array.forEach((item) => {
 			if (this.doRotate) this.setRandomRotation(item.querySelector(this.sticker_item_innerSelector));
@@ -520,13 +544,6 @@ var StickerApp = {
 			this.setStickerPlacement(item, 0);
 		});
 	},
-
-	// Function to generate a random number within a specified range
-	getRandomNumber: function (min, max) {
-		return Math.random() * (max - min) + min;
-	},
-
-
 
 	// Function to set random rotation to an element
 	setRandomRotation: function (element) {
@@ -541,7 +558,7 @@ var StickerApp = {
 		}
 
 		// Generate a random rotation value between -maxRotation and maxRotation
-		var additionalRotation = this.getRandomNumber(-this.maxStickerRotation, this.maxStickerRotation);
+		var additionalRotation = this.getRandomFloat(-this.maxStickerRotation, this.maxStickerRotation);
 
 		// Calculate the new rotation including existing rotation
 		var totalRotation = existingRotation + additionalRotation;
@@ -593,7 +610,6 @@ var StickerApp = {
 				var stickerBookRect = document.getElementById(self.sticker_containerID).getBoundingClientRect();
 
 				// Get scroll positions and client offsets
-
 				var clientTop = document.documentElement.clientTop || 0;
 				var clientLeft = document.documentElement.clientLeft || 0;
 
@@ -622,12 +638,11 @@ var StickerApp = {
 					if (x < 0) x = 0;
 					if (y < 0) y = 0;
 					if (x + item.offsetWidth > window.innerWidth) x = window.innerWidth - item.offsetWidth;
-					if (y + item.offsetHeight > window.innerHeight) y = window.innerHeight - item.offsetHeight - 1;
+					if (y + item.offsetHeight > window.innerHeight) y = window.innerHeight - item.offsetHeight;
 
 					item.style.left = x + "px";
 					item.style.top = y + "px";
 				}
-
 
 				function onEnd(event) {
 					event.preventDefault(); // Prevent default touch behavior
@@ -670,7 +685,7 @@ var StickerApp = {
 
 						// Log message to your log
 					} else {
-						// not a click - Set percentage if needed
+						// it was not a click - Set percentage if needed
 						if (self.convertToPercent == true) {
 							item.style.left = self.convertPixelToPercent(item.style.left, window.innerWidth);
 							item.style.top = self.convertPixelToPercent(item.style.top, window.innerHeight);
@@ -684,33 +699,18 @@ var StickerApp = {
 		});
 	},
 
+	getRandomInteger: function (min, max) {
+		return Math.floor(Math.random() * (max - min + 1)) + min;
+	},
+
+	getRandomFloat: function (min, max) {
+		return Math.random() * (max - min) + min;
+	},
+
 	calculateDistance: function (x1, y1, x2, y2) {
 		const distanceX = Math.abs(x2 - x1);
 		const distanceY = Math.abs(y2 - y1);
 		return Math.sqrt(Math.pow(distanceX, 2) + Math.pow(distanceY, 2));
-	},
-
-	setSparkle: function (sparkle_itemName) {
-		var sparkleItem = document.querySelector(sparkle_itemName);
-		var sparkleWidth = sparkleItem.offsetWidth;
-		var sparkleHeight = sparkleItem.offsetHeight;
-		var windowWidth = window.innerWidth;
-		var windowHeight = window.innerHeight;
-
-		var newx = getRandomInteger(0, windowWidth - sparkleWidth);
-		var newy = getRandomInteger(0, windowHeight - sparkleHeight);
-
-		// Clamp values to bounds
-		newx = Math.max(0, Math.min(newx, windowWidth - sparkleWidth));
-		newy = Math.max(0, Math.min(newy, windowHeight - sparkleHeight));
-
-		// Pixel to percentage conversion
-		sparkleItem.style.top = convertPixelToPercent(newy, windowHeight);
-		sparkleItem.style.left = convertPixelToPercent(newx, windowWidth);
-
-		// Reload Image
-		var newUrl = "images/particle/sparkle-playonce.png?" + new Date().getTime();
-		sparkleItem.querySelector("img").src = newUrl;
 	},
 
 	convertPixelToPercent: function (pixelValue, containerWidth) {

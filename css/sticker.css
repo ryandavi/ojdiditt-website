@@ -70,7 +70,6 @@
 .sticker-book .sticker-wrapper > .sticker > img {
   -o-object-fit: cover;
      object-fit: cover;
-  user-drag: none;
   max-width: inherit;
   max-height: inherit;
   transition: transform 0.2s;
