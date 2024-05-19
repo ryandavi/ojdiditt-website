@@ -227,14 +227,14 @@
 	transition: opacity .5s, background-color 1s, transform 0.25s;
 
 	-webkit-tap-highlight-color: transparent;
-	background-color: #007bff30;
+	background-color: #ffffff30;
 
 	opacity: 0;
 
 	>.refresh-icon {
 		width: 80%;
 		height: 80%;
-		fill: white;
+		fill: #ff41b0;
 	}
 
 	&.visible {
@@ -247,7 +247,7 @@
 		&:hover,
 		&:active,
 		&.spin {
-			background-color: #007bff;
+			background-color: white;
 		}
 
 		&:active,
@@ -256,7 +256,8 @@
 		}
 
 		&.spin {
-			animation: spin var(--refreshDuration) linear;
+			animation: spin var(--refreshDuration) cubic-bezier(0.42, 0, 0.58, 1) forwards;
+			animation-direction: reverse;
 		}
 
 
@@ -277,10 +278,9 @@
 	}
 
 	to {
-		transform: scale(var(--activeScale)) rotate(-360deg);
+		transform: scale(var(--activeScale)) rotate(360deg);
 	}
 }
-
 
 @keyframes wiggle {
 

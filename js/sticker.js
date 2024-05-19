@@ -485,7 +485,6 @@ var StickerApp = {
 				// square
 				maxOffsetX *= 0.05;
 				maxOffsetY *= 0.05;
-
 			}
 
 			x = this.getRandomInteger(

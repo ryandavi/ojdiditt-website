@@ -158,13 +158,13 @@
   cursor: pointer;
   transition: opacity 0.5s, background-color 1s, transform 0.25s;
   -webkit-tap-highlight-color: transparent;
-  background-color: rgba(0, 123, 255, 0.1882352941);
+  background-color: rgba(255, 255, 255, 0.1882352941);
   opacity: 0;
 }
 #refreshButton > .refresh-icon {
   width: 80%;
   height: 80%;
-  fill: white;
+  fill: #ff41b0;
 }
 #refreshButton.visible {
   opacity: 1;
@@ -173,13 +173,14 @@
   transform: scale(var(--hoverScale));
 }
 #refreshButton.visible:hover, #refreshButton.visible:active, #refreshButton.visible.spin {
-  background-color: #007bff;
+  background-color: white;
 }
 #refreshButton.visible:active, #refreshButton.visible.spin {
   transform: scale(var(--activeScale));
 }
 #refreshButton.visible.spin {
-  animation: spin var(--refreshDuration) linear;
+  animation: spin var(--refreshDuration) cubic-bezier(0.42, 0, 0.58, 1) forwards;
+  animation-direction: reverse;
 }
 
 @media (max-width: 1024px) {
@@ -193,7 +194,7 @@
     transform: scale(var(--activeScale)) rotate(0deg);
   }
   to {
-    transform: scale(var(--activeScale)) rotate(-360deg);
+    transform: scale(var(--activeScale)) rotate(360deg);
   }
 }
 @keyframes wiggle {
