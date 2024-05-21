@@ -12,6 +12,7 @@ var StickerApp = {
 
 	// draggable
 	doDraggable: true,
+	allowRightClick: true,
 
 	// layering
 	highestZIndex: 0,
@@ -43,7 +44,7 @@ var StickerApp = {
 
 	// reveal
 	doReveal: true,
-	revealClassName: "visible",
+	revealClass: "visible",
 	initialRevealDelayDuration: 500,
 	revealDelayDuration: 150,
 	isAccelerated: true,
@@ -55,7 +56,7 @@ var StickerApp = {
 
 	// depth (scaling, shadows)
 	doDepth: true,
-	depthClassName: "addDepth",
+	depthClass: "addDepth",
 
 	// starting rotation
 	doRotate: true,
@@ -89,6 +90,13 @@ var StickerApp = {
 			this.setRefreshButton();
 			this.initStickers(container);
 		}
+	},
+
+	initStickers: function (container) {
+		this.stickers_array = container.querySelectorAll(this.sticker_itemSelector);
+		this.imagesLoaded = false;
+		this.imagesLoadedTimeout = null;
+		this.loadImagesWithTimeout();
 	},
 
 	setWindowSize: function () {
@@ -187,13 +195,6 @@ var StickerApp = {
 		}
 	},
 
-	initStickers: function (container) {
-		this.stickers_array = container.querySelectorAll(this.sticker_itemSelector);
-		this.imagesLoaded = false;
-		this.imagesLoadedTimeout = null;
-		this.loadImagesWithTimeout();
-	},
-
 	onResize() {
 		console.log("Resize event executed");
 		if (this.doResetOnRefresh) document.getElementById('refreshButton').click();
@@ -208,7 +209,7 @@ var StickerApp = {
 
 				// remove reveal class
 				if (this.doReveal) {
-					this.stickers_array[i].classList.remove(this.revealClassName);
+					this.stickers_array[i].classList.remove(this.revealClass);
 				}
 			}
 
@@ -217,7 +218,7 @@ var StickerApp = {
 				setTimeout(() => {
 					this.setStickerLocations();
 					this.stickers_array.forEach(item => {
-						item.classList.add(this.revealClassName);
+						item.classList.add(this.revealClass);
 					});
 				}, 350);
 			}
@@ -286,10 +287,10 @@ var StickerApp = {
 			this.setStickerLocations();
 		}
 
-		if(this.doDraggable){
+		if (this.doDraggable) {
 			this.makeDraggable();
 		}
-		
+
 		if (this.doShake) {
 			this.shakeRandomSticker();
 			this.setShakeInterval();
@@ -308,9 +309,7 @@ var StickerApp = {
 		if (this.doReveal) {
 			this.revealStickerOneByOne();
 		}
-
 	},
-
 
 	/**********
 	*
@@ -402,7 +401,7 @@ var StickerApp = {
 
 		for (let i = 0; i < this.stickers_array.length; i++) {
 			setTimeout(() => {
-				this.stickers_array[i].classList.add(this.revealClassName);
+				this.stickers_array[i].classList.add(this.revealClass);
 			}, currentDelay);
 
 			if (this.isAccelerated) {
@@ -425,6 +424,7 @@ var StickerApp = {
 			validPositionFound = this.tryPlaceSticker(sticker, pageWidth, pageHeight);
 		}
 
+		// we reached the iteration limit, try last chance
 		if (!validPositionFound) {
 			console.warn('Max attempts reached, attempting to place sticker without overlap only against no-overlap elements');
 
@@ -496,8 +496,8 @@ var StickerApp = {
 				portraitElement.offsetTop + portraitElement.offsetHeight + maxOffsetY - sticker.offsetHeight
 			);
 		} else {
-			x = Math.random() * (pageWidth - sticker.offsetWidth);
-			y = Math.random() * (pageHeight - sticker.offsetHeight);
+			x = this.getRandomInteger(0, pageWidth - sticker.offsetWidth);
+			y = this.getRandomInteger(0, pageHeight - sticker.offsetHeight);
 		}
 		return { x, y };
 	},
@@ -573,127 +573,142 @@ var StickerApp = {
 
 			var clickStartTime; // Variable to store the start time of the click
 			var clickEndTime; // Variable to store the end time of the click
+			var isDragging = false; // Variable to track if an item is being dragged
 
 			item.addEventListener("mousedown", startDrag, { passive: false });
 			item.addEventListener("touchstart", startDrag, { passive: false });
+
+			item.addEventListener("contextmenu", function(event) {
+				if (isDragging) {
+					event.preventDefault();
+					console.log("hi");
+				}
+			});
 
 			// add draggable class
 			item.classList.add("draggable");
 
 			// Make it already visible if not doing a reveal
 			if (self.doReveal == false) {
-				item.classList.add(self.revealClassName);
+				item.classList.add(self.revealClass);
 			}
 
 			// add depth
 			if (self.doDepth == true) {
-				item.classList.add(self.depthClassName);
+				item.classList.add(self.depthClass);
 			}
 
 			function startDrag(event) {
 
-				// add dragging class
-				item.classList.add("dragging");
 
-				var isTouch = event.type === "touchstart";
-				var offsetX, offsetY;
+				if (self.allowRightClick == true || (self.allowRightClick == false &&  event.button !== 2)) {
 
-				clickStartTime = new Date().getTime(); // Record the start time of the click
+					
+					// add dragging class
+					item.classList.add("dragging");
+					isDragging = true; // Set dragging to true
 
-				// Record initial position
-				var initialLeft = parseFloat(item.style.left);
-				var initialTop = parseFloat(item.style.top);
+					var isTouch = event.type === "touchstart";
+					var offsetX, offsetY;
 
-				// Get positions and dimensions
-				var rect = item.getBoundingClientRect();
-				var stickerBookRect = document.getElementById(self.sticker_containerID).getBoundingClientRect();
+					clickStartTime = new Date().getTime(); // Record the start time of the click
 
-				// Get scroll positions and client offsets
-				var clientTop = document.documentElement.clientTop || 0;
-				var clientLeft = document.documentElement.clientLeft || 0;
+					// Record initial position
+					var initialLeft = parseFloat(item.style.left);
+					var initialTop = parseFloat(item.style.top);
 
-				// Calculate offsets based on touch or mouse event
-				var eventPos = isTouch ? event.touches[0] : event;
-				var offsetX = eventPos.clientX - rect.left + stickerBookRect.left - clientLeft;
-				var offsetY = eventPos.clientY - rect.top + stickerBookRect.top - clientTop;
+					// Get positions and dimensions
+					var rect = item.getBoundingClientRect();
+					var stickerBookRect = document.getElementById(self.sticker_containerID).getBoundingClientRect();
 
-				// z-index stuff
-				self.highestZIndex += 1;
-				item.style.zIndex = self.highestZIndex;
+					// Get scroll positions and client offsets
+					var clientTop = document.documentElement.clientTop || 0;
+					var clientLeft = document.documentElement.clientLeft || 0;
+
+					// Calculate offsets based on touch or mouse event
+					var eventPos = isTouch ? event.touches[0] : event;
+					var offsetX = eventPos.clientX - rect.left + stickerBookRect.left - clientLeft;
+					var offsetY = eventPos.clientY - rect.top + stickerBookRect.top - clientTop;
+
+					// z-index stuff
+					self.highestZIndex += 1;
+					item.style.zIndex = self.highestZIndex;
 
 
-				function onMove(event) {
-					event.preventDefault(); // Prevent default touch behavior
-					var x, y;
-					if (isTouch) {
-						var touch = event.touches[0];
-						x = touch.clientX - offsetX;
-						y = touch.clientY - offsetY;
-					} else {
-						x = event.clientX - offsetX;
-						y = event.clientY - offsetY;
-					}
-
-					if (x < 0) x = 0;
-					if (y < 0) y = 0;
-					if (x + item.offsetWidth > window.innerWidth) x = window.innerWidth - item.offsetWidth;
-					if (y + item.offsetHeight > window.innerHeight) y = window.innerHeight - item.offsetHeight;
-
-					item.style.left = x + "px";
-					item.style.top = y + "px";
-				}
-
-				function onEnd(event) {
-					event.preventDefault(); // Prevent default touch behavior
-
-					// done dragging so remove everything related to that
-					document.removeEventListener(isTouch ? "touchmove" : "mousemove", onMove);
-					document.removeEventListener(isTouch ? "touchend" : "mouseup", onEnd);
-					item.classList.remove("dragging");
-
-					clickEndTime = new Date().getTime(); // Record the end time of the click
-					var clickDuration = clickEndTime - clickStartTime; // Calculate the duration of the click
-
-					// Log click duration
-					console.log("Click duration:", clickDuration);
-
-					// Record final position
-					var finalLeft = parseFloat(item.style.left);
-					var finalTop = parseFloat(item.style.top);
-
-					// Calculate distance moved
-					var distanceX = Math.abs(finalLeft - initialLeft);
-					var distanceY = Math.abs(finalTop - initialTop);
-					var distance = Math.sqrt(Math.pow(distanceX, 2) + Math.pow(distanceY, 2)); // Euclidean distance
-
-					// Log distance moved
-					console.log("Distance moved:", distance);
-
-					// Check if distance is too low
-					if (distance < self.movementThreshold || clickDuration < self.clickDurationThreshold) {
-						console.log("Distance moved or duration below threshold - register as click");
-
-						var linkElement = event.target.querySelector("a");
-
-						// if it's not a right click
-						if (linkElement && event.button !== 2) {
-							console.log(linkElement);
-							// If a link element is found, navigate to it
-							window.location.href = linkElement.href;
+					function onMove(event) {
+						event.preventDefault(); // Prevent default touch behavior
+						var x, y;
+						if (isTouch) {
+							var touch = event.touches[0];
+							x = touch.clientX - offsetX;
+							y = touch.clientY - offsetY;
+						} else {
+							x = event.clientX - offsetX;
+							y = event.clientY - offsetY;
 						}
 
-						// Log message to your log
-					} else {
-						// it was not a click - Set percentage if needed
-						if (self.convertToPercent == true) {
-							item.style.left = self.convertPixelToPercent(item.style.left, window.innerWidth);
-							item.style.top = self.convertPixelToPercent(item.style.top, window.innerHeight);
+						if (x < 0) x = 0;
+						if (y < 0) y = 0;
+						if (x + item.offsetWidth > window.innerWidth) x = window.innerWidth - item.offsetWidth;
+						if (y + item.offsetHeight > window.innerHeight) y = window.innerHeight - item.offsetHeight;
+
+						item.style.left = x + "px";
+						item.style.top = y + "px";
+					}
+
+					function onEnd(event) {
+						event.preventDefault(); // Prevent default touch behavior
+
+						// done dragging so remove everything related to that
+						document.removeEventListener(isTouch ? "touchmove" : "mousemove", onMove);
+						document.removeEventListener(isTouch ? "touchend" : "mouseup", onEnd);
+						item.classList.remove("dragging");
+						isDragging = false; // Reset dragging to false
+
+						clickEndTime = new Date().getTime(); // Record the end time of the click
+						var clickDuration = clickEndTime - clickStartTime; // Calculate the duration of the click
+
+						// Log click duration
+						console.log("Click duration:", clickDuration);
+
+						// Record final position
+						var finalLeft = parseFloat(item.style.left);
+						var finalTop = parseFloat(item.style.top);
+
+						// Calculate distance moved
+						var distanceX = Math.abs(finalLeft - initialLeft);
+						var distanceY = Math.abs(finalTop - initialTop);
+						var distance = Math.sqrt(Math.pow(distanceX, 2) + Math.pow(distanceY, 2)); // Euclidean distance
+
+						// Log distance moved
+						console.log("Distance moved:", distance);
+
+						// Check if distance is too low
+						if (distance < self.movementThreshold || clickDuration < self.clickDurationThreshold) {
+							console.log("Distance moved or duration below threshold - register as click");
+
+							var linkElement = event.target.querySelector("a");
+
+							// if it's not a right click
+							if (linkElement && event.button !== 2) {
+								console.log(linkElement);
+								// If a link element is found, navigate to it
+								window.location.href = linkElement.href;
+							}
+
+							// Log message to your log
+						} else {
+							// it was not a click - Set percentage if needed
+							if (self.convertToPercent == true) {
+								item.style.left = self.convertPixelToPercent(item.style.left, window.innerWidth);
+								item.style.top = self.convertPixelToPercent(item.style.top, window.innerHeight);
+							}
 						}
 					}
-				}
 
-				document.addEventListener(isTouch ? "touchmove" : "mousemove", onMove, { passive: false });
-				document.addEventListener(isTouch ? "touchend" : "mouseup", onEnd, { passive: false });
+					document.addEventListener(isTouch ? "touchmove" : "mousemove", onMove, { passive: false });
+					document.addEventListener(isTouch ? "touchend" : "mouseup", onEnd, { passive: false });
+				}
 			}
 		});
 	},
@@ -719,4 +734,4 @@ var StickerApp = {
 	},
 };
 
-StickerApp.init();
+
